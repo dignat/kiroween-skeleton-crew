@@ -1,8 +1,10 @@
 // Recipe matching (task 19.3). Pure function, no I/O. Browser-safe.
 // Matches on normalized ingredient names only, so the core flow does not depend
-// on the nutrition work (design.md). Phase 6 adds the 'purity' sort.
+// on the nutrition work (design.md). Passing a nutritionTable enriches each match
+// and enables the 'purity' sort (Phase 6, task 25.3).
 
 import { normalizeIngredient } from './ingredient-map.js';
+import { curseLevel, nutritionPerServing, potionPurity } from './nutrition-math.js';
 import type { Recipe, RecipeMatch, SuggestOptions } from './types.js';
 
 /** The set of distinct normalized ingredient names in a recipe. */
@@ -52,7 +54,16 @@ export function suggestRecipes(
       else missing.push(name);
     }
     if (matched.length > 0) {
-      matches.push({ recipe, matched, missing });
+      const match: RecipeMatch = { recipe, matched, missing };
+      // Enrich with nutrition when a table is supplied (Requirement 14.11).
+      if (options.nutritionTable) {
+        const nutrition = nutritionPerServing(recipe, options.nutritionTable);
+        const level = curseLevel(nutrition);
+        match.nutrition = nutrition;
+        match.curseLevel = level;
+        match.purity = potionPurity(level);
+      }
+      matches.push(match);
     }
   }
 
@@ -60,8 +71,11 @@ export function suggestRecipes(
   // modern engines, so equal counts keep their dataset order.
   matches.sort((a, b) => b.matched.length - a.matched.length);
 
-  // 'purity' sort is added in Phase 6; until then it behaves like 'match'.
-  void options.sortBy;
+  // 'purity' sort: lowest Curse Level first (purest). Only meaningful when a
+  // nutrition table was supplied; without curseLevel it falls back to match order.
+  if (options.sortBy === 'purity') {
+    matches.sort((a, b) => (a.curseLevel ?? Infinity) - (b.curseLevel ?? Infinity));
+  }
 
   return matches;
 }

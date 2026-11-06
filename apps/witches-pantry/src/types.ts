@@ -22,7 +22,7 @@ export interface Recipe {
   flavorText?: string | undefined;
 }
 
-/** Per-serving nutrition, filled in by the stretch nutrition work (Phase 6). */
+/** Per-serving (or per-100 g, for table entries) nutrition values. */
 export interface Nutrition {
   kcal: number;
   protein: number;
@@ -33,6 +33,15 @@ export interface Nutrition {
   sodiumMg: number;
   addedSugar: number;
 }
+
+/** One ingredient's per-100 g nutrition, with its data source. */
+export interface NutritionEntry extends Nutrition {
+  /** Where the values came from, for example "USDA FDC". */
+  source: string;
+}
+
+/** Per-100 g nutrition keyed by normalized ingredient name. */
+export type NutritionTable = Record<string, NutritionEntry>;
 
 export type Purity = 'Pure' | 'Murky' | 'Cursed';
 
@@ -49,6 +58,12 @@ export interface RecipeMatch {
 }
 
 export interface SuggestOptions {
-  /** 'match' (default) sorts by matched count; 'purity' is added in Phase 6. */
+  /** 'match' (default) sorts by matched count; 'purity' sorts by Curse Level ascending. */
   sortBy?: 'match' | 'purity';
+  /**
+   * When provided, each match is enriched with per-serving nutrition, Curse Level
+   * and purity, and 'purity' sorting becomes available (Requirement 14). Omit it
+   * and the core name-only matching runs unchanged.
+   */
+  nutritionTable?: NutritionTable | undefined;
 }

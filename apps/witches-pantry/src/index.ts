@@ -9,6 +9,15 @@ export const BUILT_ON = SKELETON_NAME;
 export { recipes } from './recipes.js';
 export { suggestRecipes } from './suggest-recipes.js';
 export { normalizeIngredient, normalizeIngredients } from './ingredient-map.js';
+export { nutritionTable, nutritionTableSchema } from './nutrition.js';
+export {
+  nutritionPerServing,
+  curseLevel,
+  potionPurity,
+  dominantCurse,
+  DAILY_VALUES,
+  CURSE_WEIGHTS,
+} from './nutrition-math.js';
 export {
   recipeSchema,
   recipeDatasetSchema,
@@ -19,6 +28,8 @@ export type {
   RecipeIngredient,
   RecipeMatch,
   Nutrition,
+  NutritionEntry,
+  NutritionTable,
   Purity,
   SuggestOptions,
 } from './types.js';

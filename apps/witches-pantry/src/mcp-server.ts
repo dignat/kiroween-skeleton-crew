@@ -15,6 +15,7 @@ import {
 } from '@skeleton-crew/core/node';
 import { normalizeIngredients } from './ingredient-map.js';
 import { createFoodDetector } from './node-detector.js';
+import { nutritionTable } from './nutrition.js';
 import { recipes } from './recipes.js';
 import { suggestRecipes } from './suggest-recipes.js';
 
@@ -58,15 +59,34 @@ export function createServer() {
         .filter((i) => i.length > 0 && !normalized.includes(i));
       const have = Array.from(new Set([...normalized, ...extras]));
 
-      const matches = suggestRecipes(have, recipes, { sortBy: input.sortBy ?? 'match' });
+      const matches = suggestRecipes(have, recipes, {
+        sortBy: input.sortBy ?? 'match',
+        nutritionTable,
+      });
 
-      // Return a compact, model-friendly shape (not the full Recipe objects).
+      // Return a compact, model-friendly shape (not the full Recipe objects),
+      // including per-serving nutrition, Curse Level and purity (Requirement 14.11).
+      const round1 = (x: number): number => Math.round(x * 10) / 10;
       const result = matches.map((m) => ({
         id: m.recipe.id,
         name: m.recipe.name,
         servings: m.recipe.servings,
         matched: m.matched,
         missing: m.missing,
+        curseLevel: m.curseLevel,
+        purity: m.purity,
+        nutritionPerServing: m.nutrition
+          ? {
+              kcal: Math.round(m.nutrition.kcal),
+              protein: round1(m.nutrition.protein),
+              carbs: round1(m.nutrition.carbs),
+              fat: round1(m.nutrition.fat),
+              satFat: round1(m.nutrition.satFat),
+              fibre: round1(m.nutrition.fibre),
+              sodiumMg: Math.round(m.nutrition.sodiumMg),
+              addedSugar: round1(m.nutrition.addedSugar),
+            }
+          : undefined,
       }));
       return jsonResult({ have, count: result.length, recipes: result });
     },

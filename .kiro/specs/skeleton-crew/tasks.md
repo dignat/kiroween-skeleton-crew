@@ -198,27 +198,30 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 - [x] 22. Deploy
   - GitHub Pages workflow for `witches-pantry`, correct Vite `base` path, and a check from the public URL in a private browser window. Record the first-load model download size and time
-  - Workflow `.github/workflows/deploy-pantry.yml` builds only the web UI; Vite `base` derived from the repo name at build time (`VITE_BASE=/${{ github.event.repository.name }}/`). Verified locally via `vite preview` at the subpath (index + assets HTTP 200). First-load JS ~1.23 MB (~319 KB gzip); MobileNet weights (~14 MB) load from TF Hub on first detection. Pending the user: push to main, enable Pages (Source: GitHub Actions), and confirm the live URL in a private window.
+  - Workflow `.github/workflows/deploy-pantry.yml` builds only the web UI; Vite `base` derived from the repo name at build time (`VITE_BASE=/${{ github.event.repository.name }}/`). Verified locally via `vite preview` at the subpath (index + assets HTTP 200). First-load JS ~1.23 MB (~319 KB gzip); MobileNet weights (~14 MB) load from TF Hub on first detection. Deployed live at https://dignat.github.io/kiroween-skeleton-crew/ (Pages source set to GitHub Actions; first deploy 404'd until Pages was enabled, then went green).
   - _Requirements: 6.4, 13.2_
 
-- [ ] 23. Checkpoint: use the deployed app with 5 different photos, then update `KIRO_USAGE.md`
+- [x] 23. Checkpoint: use the deployed app with 5 different photos, then update `KIRO_USAGE.md`
 
 ### Phase 6: Nutrition, Curse Level, Potion Purity (week 3, stretch)
 
-- [ ]* 24. Data
-  - [ ]* 24.1 `nutrition.json` for the ingredients used by the recipes, from the source confirmed in Spike D, with a `source` field per entry
+- [x]* 24. Data
+  - [x]* 24.1 `nutrition.json` for the ingredients used by the recipes, from the source confirmed in Spike D, with a `source` field per entry
+    - 50 ingredients (every name used by the recipes), per-100 g values from USDA FoodData Central (CC0), each with a `source` field. addedSugar is 0 for whole foods, non-zero only for sugar/honey (and a little for bread).
     - _Requirements: 14.2, 14.3_
-  - [ ]* 24.2 Data check test: calories are consistent with protein, carbs, and fat per ingredient
+  - [x]* 24.2 Data check test: calories are consistent with protein, carbs, and fat per ingredient
+    - Fibre-aware Atwater check (fibre ~2 kcal/g), kcal within 15% or 10 kcal of the estimate; also checks every recipe ingredient has an entry, sources are present, and addedSugar ≤ carbs.
     - _Requirements: 14.13_
 
-- [ ]* 25. Logic
-  - [ ]* 25.1 `nutritionPerServing`, with a property test that scaling amounts and servings together leaves the result unchanged
+- [x]* 25. Logic
+  - [x]* 25.1 `nutritionPerServing`, with a property test that scaling amounts and servings together leaves the result unchanged
     - _Requirements: 14.4, 10.12_
-  - [ ]* 25.2 `curseLevel`, `potionPurity`, and `dominantCurse`, with property tests for the 0 to 100 bounds and the monotonic direction for each nutrient
+  - [x]* 25.2 `curseLevel`, `potionPurity`, and `dominantCurse`, with property tests for the 0 to 100 bounds and the monotonic direction for each nutrient
     - _Requirements: 14.5, 14.6, 10.10, 10.11_
-  - [ ]* 25.3 `sortBy: 'purity'` in `suggestRecipes`, with a property test that Curse Levels never decrease down the list
+  - [x]* 25.3 `sortBy: 'purity'` in `suggestRecipes`, with a property test that Curse Levels never decrease down the list
     - _Requirements: 14.8, 10.13_
-  - [ ]* 25.4 Extend the `suggest_recipes` output with nutrition, Curse Level, and purity
+  - [x]* 25.4 Extend the `suggest_recipes` output with nutrition, Curse Level, and purity
+    - Verified over stdio: sortBy "purity" returns purest-first (Swamp Pea Soup curse=1 ... ascending), each recipe carries curseLevel, purity and per-serving nutrition.
     - _Requirements: 14.11_
 
 - [ ]* 26. UI and agent
