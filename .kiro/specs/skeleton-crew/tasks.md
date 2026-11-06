@@ -196,8 +196,9 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
     - App_Agent at `.kiro/agents/witches-pantry.json` (kitchen-witch persona, scoped to this app's three tools, includeMcpJson false) and per-app `mcp-launch.sh` added. User adds the witches-pantry entry to mcp.json and runs the in-Kiro test + screenshot.
     - _Requirements: 4.1, 4.2, 4.3, 6.2_
 
-- [ ] 22. Deploy
+- [x] 22. Deploy
   - GitHub Pages workflow for `witches-pantry`, correct Vite `base` path, and a check from the public URL in a private browser window. Record the first-load model download size and time
+  - Workflow `.github/workflows/deploy-pantry.yml` builds only the web UI; Vite `base` derived from the repo name at build time (`VITE_BASE=/${{ github.event.repository.name }}/`). Verified locally via `vite preview` at the subpath (index + assets HTTP 200). First-load JS ~1.23 MB (~319 KB gzip); MobileNet weights (~14 MB) load from TF Hub on first detection. Pending the user: push to main, enable Pages (Source: GitHub Actions), and confirm the live URL in a private window.
   - _Requirements: 6.4, 13.2_
 
 - [ ] 23. Checkpoint: use the deployed app with 5 different photos, then update `KIRO_USAGE.md`
