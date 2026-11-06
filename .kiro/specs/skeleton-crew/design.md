@@ -18,10 +18,10 @@ playground/
 ├── .kiro/
 │   ├── settings/mcp.json            # registers both app MCP servers with Kiro
 │   ├── agents/
-│   │   ├── tool-builder.md          # Dev_Agent
-│   │   ├── app-generator.md         # Dev_Agent
+│   │   ├── tool-builder.json        # Dev_Agent
+│   │   ├── app-generator.json       # Dev_Agent
 │   │   ├── poltergeist-detector.json   # App_Agent
-│   │   └── witches-pantry.md               # App_Agent
+│   │   └── witches-pantry.json              # App_Agent
 │   ├── hooks/
 │   │   ├── test-on-save.json
 │   │   ├── tool-registration-check.json
@@ -335,6 +335,8 @@ Decision: use `.kiro/settings/mcp.json` for the dev-time registration of each ap
 Registering the Poltergeist Detector server as `node --import tsx apps/.../mcp-server.ts` failed to connect ("Connection closed" in `mcpGateway.log`). Root cause: Kiro spawns MCP servers in a minimal, non-interactive environment that never runs `nvm use`, so `node` resolved to an old system binary (Node 16/18 on this machine, from `/usr/local/bin/node` and a Volta shim). Node 16 does not even accept `--import`, so the process exited immediately. The server itself was correct — it ran fine under Node 22.
 
 Fix: each app ships a tiny POSIX launcher (`apps/<app>/mcp-launch.sh`) that loads nvm, selects the version from the repo's `.nvmrc`, and `exec`s `node --import tsx <server>`, with all nvm output sent to stderr so stdout stays clean for the protocol. Both `.kiro/settings/mcp.json` and each agent's inline `mcpServers` use `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. This is reproducible for anyone who cloned the repo and has nvm installed, and it does not depend on how Kiro was launched. The README (task 32) must tell users to install nvm and, if they do not use nvm, to ensure Node 22 is the default `node` on PATH.
+
+Dev_Agent tool names (task 28): built-in tool names in the agent `tools` array are `fs_read`, `fs_write`, `fs_list`, `shell`, `subagent` (from the current Kiro agent JSON schema). MCP tools stay `@server/tool`. The App_Agents are MCP-only and use `permissions.rules` with `capability: "mcp"` (verified in Spike A). The Dev_Agents (`tool-builder`, `app-generator`) need the built-in tools, which in this Kiro are named `fs_read`, `fs_write`, `execute_bash`, `grep`, `glob` (read from the built-in `~/.kiro/agents/kirocrew*.json` agents, the authoritative reference). Getting the agents to appear took a controlled test: adding `allowedTools`, `toolsSettings`, or `permissions.rules` with non-`mcp` capabilities caused the IDE to **silently drop the agent from the selector** (no error, no welcome message, prompts fell through to the default agent). A clean A/B — `tool-builder` without `allowedTools` appeared, `app-generator` with it did not — isolated `allowedTools` as the trigger. Decision: `allowedTools` (and `toolsSettings`) are the fields that break discovery, not permission rules. The Dev_Agents use `name`, `description`, `prompt`, `tools`, `permissions`, `includeMcpJson`, `welcomeMessage` — the same field set as the App_Agents — with built-in tool names in `tools` and a `permissions.rules` block. The rules reuse the App_Agents' exact `{ capability, match, effect }` shape, but with built-in capabilities instead of `mcp`: `fs_read` allowed on `**`, `fs_write` allowed on `apps/**` (plus `.kiro/agents/**` for app-generator), `execute_bash` allowed for the safe pnpm/chmod commands and denied for `git push *` / `git commit *` / `rm -rf *`. Confirmed in the IDE: both Dev_Agents appear in the selector and activate with these rules. The safety limits are also restated in the prompt as a backstop.
 
 Convention — one launcher per app (decided): each app owns its own `mcp-launch.sh`; there is no shared root launcher. The script is identical across apps except for the final server path, and it keeps every app self-contained and runnable on its own, matching the "apps don't depend on each other, skeleton stays generic" rule. When both apps are registered, `.kiro/settings/mcp.json` lists two servers (`poltergeist-detector` → `apps/poltergeist-detector/mcp-launch.sh`, `witches-pantry` → `apps/witches-pantry/mcp-launch.sh`), each with `command: "sh"`. The `app-generator` agent (task 28.2) stamps out this launcher for every new app.
 

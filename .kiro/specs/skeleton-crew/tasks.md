@@ -236,11 +236,14 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 ### Phase 7: Kiro layer (build as soon as the pattern is stable, finish in week 4)
 
 - [ ] 28. Developer custom agents
-  - [ ] 28.1 `tool-builder` agent, written after the CLI app exists so it captures real conventions. Test it by asking it to add a small tool and check the result follows the steering file
+  - [x] 28.1 `tool-builder` agent, written after the CLI app exists so it captures real conventions. Test it by asking it to add a small tool and check the result follows the steering file
+    - Agent at `.kiro/agents/tool-builder.json`. TESTED in Kiro: asked it to add a `list_labels` tool to the poltergeist-detector app. It read project-structure.md, created a pure function (`coco-labels.ts`) with a Vitest test incl. a property test, registered a snake_case tool with a Zod schema from @skeleton-crew/core/node returning jsonResult, and prompted for approval on each write/command. Result follows the steering; the tool (80 COCO labels) was kept. 143 tests pass. Note: the agent's welcomeMessage did not show on switch (cosmetic; it shows in a fresh chat). Getting the agent to appear at all required dropping `allowedTools` — see design addendum.
     - _Requirements: 7.1, 7.3_
-  - [ ] 28.2 `app-generator` agent that creates a new app folder, MCP entry, `mcp.json` entry, and App_Agent from the template
+  - [x] 28.2 `app-generator` agent that creates a new app folder, MCP entry, `mcp.json` entry, and App_Agent from the template
+    - Agent at `.kiro/agents/app-generator.json`. Scaffolds package.json, tsconfig, logic + test, mcp-server.ts, the per-app mcp-launch.sh, and the App_Agent from the template; prints the mcp.json block for the user to paste (agent cannot write to .kiro/settings/). Runs install + typecheck + test to verify.
     - _Requirements: 7.2, 7.3_
   - [ ] 28.3 Record a clean run of `app-generator` creating a third demo app for the video, confirm it builds, then discard it. The repo must contain exactly two applications
+    - Pending: run in Kiro and screen-record for the video, confirm it builds, then delete the demo app so the repo keeps exactly two applications.
     - _Requirements: 7.2, 1.1_
 
 - [ ] 29. Remaining steering and hooks
