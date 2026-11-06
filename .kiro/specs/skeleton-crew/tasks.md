@@ -224,13 +224,14 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
     - Verified over stdio: sortBy "purity" returns purest-first (Swamp Pea Soup curse=1 ... ascending), each recipe carries curseLevel, purity and per-serving nutrition.
     - _Requirements: 14.11_
 
-- [ ]* 26. UI and agent
-  - [ ]* 26.1 "Best match / Purest first" radio toggle, potion meter with text label, nutrition list, tip, and the disclaimer note
+- [x]* 26. UI and agent
+  - [x]* 26.1 "Best match / Purest first" radio toggle, potion meter with text label, nutrition list, tip, and the disclaimer note
+    - Native radio group for the sort; SVG potion-bottle meter that fills with the Curse Level, with the number and purity label also shown as text (never colour alone); per-serving nutrition list; a tip from dominantCurse; and the fixed disclaimer note.
     - _Requirements: 14.7, 14.8, 14.9, 14.10_
-  - [ ]* 26.2 Update the Pantry App_Agent prompt with the wording rule (ingredients and amounts only)
+  - [x]* 26.2 Update the Pantry App_Agent prompt with the wording rule (ingredients and amounts only)
     - _Requirements: 14.12_
 
-- [ ]* 27. Checkpoint: review every tip and label against the wording rule, then update `KIRO_USAGE.md`
+- [x]* 27. Checkpoint: review every tip and label against the wording rule, then update `KIRO_USAGE.md`
 
 ### Phase 7: Kiro layer (build as soon as the pattern is stable, finish in week 4)
 

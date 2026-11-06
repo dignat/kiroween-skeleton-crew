@@ -1,7 +1,10 @@
 // Renders recipe cards (task 20.5). Each card shows matched vs missing
 // ingredients and the steps. Shows an empty state when nothing matches (6.12).
+// With nutrition present (Phase 6, task 26.1) it also shows a potion meter,
+// a per-serving nutrition list, and a tip.
 
-import type { RecipeMatch } from '../types.js';
+import type { Nutrition, RecipeMatch } from '../types.js';
+import { curseTip } from './curse-tip.js';
 
 function ingredientLine(cls: string, label: string, names: string[]): HTMLParagraphElement {
   const p = document.createElement('p');
@@ -24,6 +27,79 @@ function ingredientLine(cls: string, label: string, names: string[]): HTMLParagr
     });
   }
   return p;
+}
+
+const PURITY_CLASS: Record<string, string> = {
+  Pure: 'purity-pure',
+  Murky: 'purity-murky',
+  Cursed: 'purity-cursed',
+};
+
+/** A potion-bottle meter that fills with the Curse Level. The number and label
+ *  are also shown as text, so meaning never depends on colour alone (14.9). */
+function potionMeter(level: number, purity: string): HTMLDivElement {
+  const wrap = document.createElement('div');
+  wrap.className = `potion-meter ${PURITY_CLASS[purity] ?? ''}`;
+
+  // Fill height as a fraction of a 100-unit bottle body.
+  const fillHeight = Math.max(0, Math.min(100, level));
+  const svg = `
+    <svg viewBox="0 0 40 100" class="potion-bottle" role="img"
+         aria-label="Curse Level ${level} out of 100, ${purity}">
+      <rect x="15" y="2" width="10" height="10" rx="2" class="bottle-neck" />
+      <rect x="8" y="12" width="24" height="84" rx="8" class="bottle-body" />
+      <clipPath id="clip-${Math.round(level)}-${purity}">
+        <rect x="8" y="12" width="24" height="84" rx="8" />
+      </clipPath>
+      <rect x="8" y="${12 + (84 - (84 * fillHeight) / 100)}" width="24"
+            height="${(84 * fillHeight) / 100}" class="bottle-fill"
+            clip-path="url(#clip-${Math.round(level)}-${purity})" />
+    </svg>`;
+  const svgWrap = document.createElement('div');
+  svgWrap.innerHTML = svg;
+  wrap.append(svgWrap.firstElementChild as SVGElement);
+
+  const text = document.createElement('p');
+  text.className = 'potion-meter-label';
+  text.innerHTML = `<strong>Curse Level ${level}</strong> / 100 &middot; ${purity}`;
+  wrap.append(text);
+
+  return wrap;
+}
+
+const NUTRIENT_ROWS: Array<[keyof Nutrition, string, string]> = [
+  ['kcal', 'Calories', ''],
+  ['protein', 'Protein', ' g'],
+  ['carbs', 'Carbs', ' g'],
+  ['fat', 'Fat', ' g'],
+  ['satFat', 'Saturated fat', ' g'],
+  ['fibre', 'Fibre', ' g'],
+  ['sodiumMg', 'Sodium', ' mg'],
+  ['addedSugar', 'Added sugar', ' g'],
+];
+
+function round1(x: number): number {
+  return Math.round(x * 10) / 10;
+}
+
+/** A per-serving nutrition list (14.9). */
+function nutritionList(nutrition: Nutrition): HTMLDivElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'nutrition';
+  const h4 = document.createElement('h4');
+  h4.textContent = 'Per serving';
+  wrap.append(h4);
+  const dl = document.createElement('dl');
+  for (const [key, label, unit] of NUTRIENT_ROWS) {
+    const dt = document.createElement('dt');
+    dt.textContent = label;
+    const dd = document.createElement('dd');
+    const value = key === 'kcal' || key === 'sodiumMg' ? Math.round(nutrition[key]) : round1(nutrition[key]);
+    dd.textContent = `${value}${unit}`;
+    dl.append(dt, dd);
+  }
+  wrap.append(dl);
+  return wrap;
 }
 
 function recipeCard(match: RecipeMatch): HTMLLIElement {
@@ -53,6 +129,23 @@ function recipeCard(match: RecipeMatch): HTMLLIElement {
 
   card.append(ingredientLine('matched-list', 'You have', matched));
   card.append(ingredientLine('missing-list', 'You still need', missing));
+
+  // Nutrition block (Phase 6): meter, per-serving list, and a tip (task 26.1).
+  if (match.nutrition && match.curseLevel !== undefined && match.purity) {
+    const nutritionWrap = document.createElement('div');
+    nutritionWrap.className = 'potion-stats';
+    nutritionWrap.append(potionMeter(match.curseLevel, match.purity));
+    nutritionWrap.append(nutritionList(match.nutrition));
+    card.append(nutritionWrap);
+
+    const tip = curseTip(match.nutrition);
+    if (tip) {
+      const tipEl = document.createElement('p');
+      tipEl.className = 'curse-tip';
+      tipEl.textContent = `💡 ${tip}`;
+      card.append(tipEl);
+    }
+  }
 
   const details = document.createElement('details');
   const summaryEl = document.createElement('summary');

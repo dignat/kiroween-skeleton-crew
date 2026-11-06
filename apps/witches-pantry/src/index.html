@@ -76,8 +76,26 @@
       <!-- Step 3: recipes -->
       <section class="panel" aria-labelledby="recipes-heading">
         <h2 id="recipes-heading">3. Potions you can brew</h2>
+
+        <fieldset class="sort-toggle">
+          <legend>Order the potions by</legend>
+          <label>
+            <input type="radio" name="sort" value="match" checked />
+            Best match
+          </label>
+          <label>
+            <input type="radio" name="sort" value="purity" />
+            Purest first
+          </label>
+        </fieldset>
+
         <p id="recipe-count" class="status" role="status" aria-live="polite"></p>
         <ul id="recipes" class="recipes"></ul>
+
+        <p class="disclaimer">
+          Curse Level is a playful guide based on standard daily values, not medical or dietary
+          advice.
+        </p>
       </section>
     </main>
 

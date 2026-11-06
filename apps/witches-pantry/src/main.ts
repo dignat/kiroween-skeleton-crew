@@ -7,8 +7,10 @@ import type { DetectorImageInput } from '@skeleton-crew/core';
 import { createBrowserImageDecoder, fileToDetectorInput } from './browser-image-decoder.js';
 import { FOOD_LABELS } from './food-labels.js';
 import { normalizeIngredients, normalizeIngredient } from './ingredient-map.js';
+import { nutritionTable } from './nutrition.js';
 import { recipes } from './recipes.js';
 import { suggestRecipes } from './suggest-recipes.js';
+
 import { drawDetections, drawImageToCanvas } from './ui/draw-overlay.js';
 import { renderChips, renderQuickAdd } from './ui/render-chips.js';
 import { renderRecipes } from './ui/render-recipes.js';
@@ -49,9 +51,11 @@ const addInput = $<HTMLInputElement>('add-input');
 const quickAddEl = $<HTMLUListElement>('quick-add');
 const recipesEl = $<HTMLUListElement>('recipes');
 const recipeCount = $<HTMLParagraphElement>('recipe-count');
+const sortRadios = document.querySelectorAll<HTMLInputElement>('input[name="sort"]');
 
 // --- State: the ingredient list is the single source of truth ---
 const ingredients: string[] = [];
+let sortBy: 'match' | 'purity' = 'match';
 
 // --- Detector (lazy; the model loads on first use) ---
 const decodeImage = createBrowserImageDecoder();
@@ -64,7 +68,9 @@ function refresh(): void {
   const have = new Set(ingredients);
   renderChips(chipsEl, ingredients, removeIngredient);
   renderQuickAdd(quickAddEl, QUICK_ADD, have, addIngredient);
-  const matches = suggestRecipes(ingredients, recipes);
+  // Pass the nutrition table so cards get a Curse Level, purity and the tip,
+  // and so "Purest first" can sort by it (Phase 6).
+  const matches = suggestRecipes(ingredients, recipes, { sortBy, nutritionTable });
   renderRecipes(recipesEl, recipeCount, matches);
 }
 
@@ -203,6 +209,16 @@ addForm.addEventListener('submit', (e) => {
   addInput.value = '';
   addInput.focus();
 });
+
+// Sort toggle: "Best match" vs "Purest first".
+for (const radio of sortRadios) {
+  radio.addEventListener('change', () => {
+    if (radio.checked) {
+      sortBy = radio.value === 'purity' ? 'purity' : 'match';
+      refresh();
+    }
+  });
+}
 
 // --- Initial render ---
 refresh();

@@ -314,3 +314,103 @@ main {
     transition: none;
   }
 }
+
+/* --- Phase 6: nutrition UI (task 26.1) --- */
+
+.sort-toggle {
+  border: 1px solid #3a3357;
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+  margin: 0 0 1rem;
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sort-toggle legend {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 0 0.4rem;
+}
+.sort-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.potion-stats {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin: 0.75rem 0 0;
+  flex-wrap: wrap;
+}
+
+.potion-meter {
+  text-align: center;
+  flex: 0 0 auto;
+}
+.potion-bottle {
+  width: 48px;
+  height: 120px;
+}
+.bottle-neck,
+.bottle-body {
+  fill: none;
+  stroke: #4a4268;
+  stroke-width: 2;
+}
+.bottle-fill {
+  fill: var(--match);
+}
+.purity-murky .bottle-fill {
+  fill: #e0c766;
+}
+.purity-cursed .bottle-fill {
+  fill: #e4789a;
+}
+.potion-meter-label {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.nutrition {
+  flex: 1 1 220px;
+}
+.nutrition h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+.nutrition dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.1rem 0.75rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+.nutrition dt {
+  color: var(--muted);
+}
+.nutrition dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.curse-tip {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.9rem;
+  background: #241f33;
+  border-left: 3px solid var(--focus);
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+
+.disclaimer {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}

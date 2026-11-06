@@ -252,7 +252,7 @@ UI additions:
 - A fixed note: "Curse Level is a playful guide based on standard daily values, not medical or dietary advice."
 - Wording rule: tips talk about ingredients and amounts ("a lot of salt in this potion, try half and add lemon"), never about weight, bodies, or calorie restriction.
 
-Data validation (runs as a test, Requirement 14.13): for every ingredient, `4*protein + 4*carbs + 9*fat` must be within a stated tolerance of `kcal`. This catches typos in the hand-curated table.
+Data validation (runs as a test, Requirement 14.13): for every ingredient, the Atwater estimate must be within a stated tolerance of `kcal`. This catches typos in the hand-curated table. Refined during task 24: the plain `4*protein + 4*carbs + 9*fat` over-counts high-fibre and high-water foods (cinnamon was off by ~100 kcal against the real USDA value), because USDA kcal already discounts fibre. The test uses a fibre-aware estimate instead — `4*protein + 4*(carbs - fibre) + 2*fibre + 9*fat` — accepted within 15% or 10 kcal, which keeps honest USDA values and still catches gross typos.
 
 MCP: `suggest_recipes` returns each recipe's nutrition, `curseLevel`, and `purity`, and accepts `sortBy`. No extra tool is needed. The Pantry App_Agent prompt tells the agent to use these fields for advice and to follow the wording rule.
 
