@@ -11,6 +11,7 @@ inclusion: always
 - Tests: Vitest for unit tests and `fast-check` for property-based tests. Run with `pnpm test` (`vitest run`). Typecheck with `pnpm typecheck`.
 - Detection: TensorFlow.js (COCO-SSD and a MobileNet-style food classifier) behind a `ModelAdapter`.
 - MCP: each app runs its own stdio MCP server. Kiro custom agents call it. No paid APIs.
+- MCP launch: each app owns a POSIX launcher `apps/<app>/mcp-launch.sh` that loads nvm, selects the `.nvmrc` Node, and execs `node --import tsx` on its own server (all nvm output to stderr). `mcp.json` and agents run it as `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. One launcher per app, no shared root launcher. Kiro spawns servers without `nvm use`, so a bare `node` command would use the wrong Node version.
 
 ## Layout
 

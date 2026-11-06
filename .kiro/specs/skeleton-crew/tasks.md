@@ -155,11 +155,12 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
   - [x] 16.4 Unit tests for argument parsing, exit codes, and the error paths
     - _Requirements: 5.7, 5.8, 5.9_
 
-- [ ] 17. Kiro wiring for the CLI app
+- [x] 17. Kiro wiring for the CLI app
   - Add the server to `.kiro/settings/mcp.json`, write the App_Agent (poltergeist-investigator persona, only this app's tools), try it in Kiro on the before and after photos, and keep a screenshot
+  - Server registered via a per-app `mcp-launch.sh` (nvm-aware) after a bare `node` command failed to connect; App_Agent at `.kiro/agents/poltergeist-detector.json` scoped to only this app's three tools. Server connects in Kiro. Screenshot of a live compare still to be captured for the submission.
   - _Requirements: 4.1, 4.2, 4.3, 5.2_
 
-- [ ] 18. Checkpoint: run the CLI on the before and after photos in `samples/` end to end, then update `KIRO_USAGE.md`
+- [x] 18. Checkpoint: run the CLI on the before and after photos in `samples/` end to end, then update `KIRO_USAGE.md`
 
 ### Phase 5: The Witch's Pantry core (weeks 2 to 3)
 

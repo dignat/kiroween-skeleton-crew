@@ -1,10 +1,16 @@
 {
   "mcpServers": {
-    "spike-hello": {
-      "command": "node",
-      "args": ["--import", "tsx", "packages/skeleton/spike/hello-server.ts"],
+    "poltergeist-detector": {
+      "command": "sh",
+      "args": ["apps/poltergeist-detector/mcp-launch.sh"],
       "env": {},
-      "disabled": false 
+      "disabled": false
+    },
+    "witches-pantry": {
+      "command": "sh",
+      "args": ["apps/witches-pantry/mcp-launch.sh"],
+      "env": {},
+      "disabled": false
     }
   }
 }

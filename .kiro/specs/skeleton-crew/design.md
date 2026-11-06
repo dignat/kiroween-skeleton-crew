@@ -330,6 +330,14 @@ Tested in the Kiro IDE with a throwaway `hello` server and a throwaway agent. Fi
 
 Decision: use `.kiro/settings/mcp.json` for the dev-time registration of each app server and one inline-`mcpServers` agent per app in `.kiro/agents/`, using the formats above. Tasks 17 and 21.2 can proceed on this basis.
 
+### Addendum (task 17): Kiro spawns servers with the default Node, not the nvm one
+
+Registering the Poltergeist Detector server as `node --import tsx apps/.../mcp-server.ts` failed to connect ("Connection closed" in `mcpGateway.log`). Root cause: Kiro spawns MCP servers in a minimal, non-interactive environment that never runs `nvm use`, so `node` resolved to an old system binary (Node 16/18 on this machine, from `/usr/local/bin/node` and a Volta shim). Node 16 does not even accept `--import`, so the process exited immediately. The server itself was correct — it ran fine under Node 22.
+
+Fix: each app ships a tiny POSIX launcher (`apps/<app>/mcp-launch.sh`) that loads nvm, selects the version from the repo's `.nvmrc`, and `exec`s `node --import tsx <server>`, with all nvm output sent to stderr so stdout stays clean for the protocol. Both `.kiro/settings/mcp.json` and each agent's inline `mcpServers` use `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. This is reproducible for anyone who cloned the repo and has nvm installed, and it does not depend on how Kiro was launched. The README (task 32) must tell users to install nvm and, if they do not use nvm, to ensure Node 22 is the default `node` on PATH.
+
+Convention — one launcher per app (decided): each app owns its own `mcp-launch.sh`; there is no shared root launcher. The script is identical across apps except for the final server path, and it keeps every app self-contained and runnable on its own, matching the "apps don't depend on each other, skeleton stays generic" rule. When both apps are registered, `.kiro/settings/mcp.json` lists two servers (`poltergeist-detector` → `apps/poltergeist-detector/mcp-launch.sh`, `witches-pantry` → `apps/witches-pantry/mcp-launch.sh`), each with `command: "sh"`. The `app-generator` agent (task 28.2) stamps out this launcher for every new app.
+
 ## Spike C result: food recognition quality (decided)
 
 Ran the ImageNet MobileNet v2 classifier (`@tensorflow-models/mobilenet` 2.1.1, `@tensorflow/tfjs` 4.22.0, pure-JS CPU backend, Node 22.23.0) on 15 food images with whole-image top-5 classification. Model load took about 3.4 s and inference about 0.7 s per image. Inference is far faster than COCO-SSD in Spike B.
