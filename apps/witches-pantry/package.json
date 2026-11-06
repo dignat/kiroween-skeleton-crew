@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@skeleton-crew/core": "workspace:*"
+    "@skeleton-crew/core": "workspace:*",
+    "zod": "4.6.7"
   }
 }

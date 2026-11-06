@@ -1,0 +1,468 @@
+[
+  {
+    "id": "midnight-marrow-broth",
+    "name": "Midnight Marrow Broth",
+    "servings": 4,
+    "ingredients": [
+      { "name": "onion", "grams": 150 },
+      { "name": "carrot", "grams": 120 },
+      { "name": "celery", "grams": 80 },
+      { "name": "garlic", "grams": 15 },
+      { "name": "potato", "grams": 300 }
+    ],
+    "steps": [
+      "Char the onion and garlic in a dry cauldron until the edges blacken.",
+      "Add carrot, celery and potato with cold water to cover.",
+      "Simmer until the roots surrender, about 40 minutes.",
+      "Strain and serve the broth while it still whispers."
+    ],
+    "flavorText": "A broth brewed at the witching hour, dark as a moonless bog."
+  },
+  {
+    "id": "bubbling-cauldron-stew",
+    "name": "Bubbling Cauldron Stew",
+    "servings": 6,
+    "ingredients": [
+      { "name": "beef", "grams": 500 },
+      { "name": "potato", "grams": 400 },
+      { "name": "carrot", "grams": 200 },
+      { "name": "onion", "grams": 150 },
+      { "name": "tomato", "grams": 200 }
+    ],
+    "steps": [
+      "Sear the beef until it hisses.",
+      "Fold in onion and tomato and let them collapse.",
+      "Add potato and carrot, cover with stock, and let it bubble low for two hours."
+    ],
+    "flavorText": "It bubbles on its own long after you stop stirring."
+  },
+  {
+    "id": "spectral-scramble",
+    "name": "Spectral Scramble",
+    "servings": 2,
+    "ingredients": [
+      { "name": "egg", "grams": 150 },
+      { "name": "cheese", "grams": 60 },
+      { "name": "butter", "grams": 20 },
+      { "name": "chive", "grams": 10 }
+    ],
+    "steps": [
+      "Melt butter until it foams like sea spray.",
+      "Whisk eggs with a pinch of salt and pour in.",
+      "Pull slowly off the heat while still glossy, then fold in cheese and chive."
+    ],
+    "flavorText": "Pale, soft and gone before you know it, like a ghost at dawn."
+  },
+  {
+    "id": "crimson-hex-soup",
+    "name": "Crimson Hex Soup",
+    "servings": 4,
+    "ingredients": [
+      { "name": "tomato", "grams": 600 },
+      { "name": "onion", "grams": 100 },
+      { "name": "garlic", "grams": 12 },
+      { "name": "basil", "grams": 15 },
+      { "name": "cream", "grams": 100 }
+    ],
+    "steps": [
+      "Roast tomato, onion and garlic until blistered.",
+      "Blend to a smooth crimson pool.",
+      "Warm through with cream and a storm of torn basil."
+    ],
+    "flavorText": "Red as a hex scrawled on a cottage door."
+  },
+  {
+    "id": "wailing-widow-pasta",
+    "name": "Wailing Widow Pasta",
+    "servings": 4,
+    "ingredients": [
+      { "name": "pasta", "grams": 400 },
+      { "name": "tomato", "grams": 300 },
+      { "name": "garlic", "grams": 15 },
+      { "name": "chili", "grams": 5 },
+      { "name": "olive oil", "grams": 40 }
+    ],
+    "steps": [
+      "Boil pasta in well-salted water until just firm.",
+      "Sizzle garlic and chili in olive oil until fragrant.",
+      "Crush in tomato, simmer briefly, then toss with the pasta."
+    ],
+    "flavorText": "So fierce it makes the widow next door wail through the wall."
+  },
+  {
+    "id": "goblin-garlic-bread",
+    "name": "Goblin Garlic Bread",
+    "servings": 4,
+    "ingredients": [
+      { "name": "bread", "grams": 250 },
+      { "name": "garlic", "grams": 20 },
+      { "name": "butter", "grams": 80 },
+      { "name": "parsley", "grams": 10 }
+    ],
+    "steps": [
+      "Mash garlic and parsley into soft butter.",
+      "Slash the bread and pack the green butter into every wound.",
+      "Bake until the crust snaps and the kitchen smells haunted."
+    ],
+    "flavorText": "Goblins would trade a sack of gold for a single slice."
+  },
+  {
+    "id": "toadstool-risotto",
+    "name": "Toadstool Risotto",
+    "servings": 4,
+    "ingredients": [
+      { "name": "rice", "grams": 320 },
+      { "name": "mushroom", "grams": 300 },
+      { "name": "onion", "grams": 100 },
+      { "name": "cheese", "grams": 60 },
+      { "name": "butter", "grams": 30 }
+    ],
+    "steps": [
+      "Soften onion in butter until see-through.",
+      "Toast the rice, then add stock one ladle at a time, stirring like a spell.",
+      "Fold in seared mushroom and cheese at the end."
+    ],
+    "flavorText": "Earthy as a ring of toadstools after rain."
+  },
+  {
+    "id": "black-cat-curry",
+    "name": "Black Cat Curry",
+    "servings": 4,
+    "ingredients": [
+      { "name": "chicken", "grams": 500 },
+      { "name": "onion", "grams": 150 },
+      { "name": "garlic", "grams": 15 },
+      { "name": "ginger", "grams": 15 },
+      { "name": "tomato", "grams": 200 },
+      { "name": "coconut milk", "grams": 200 }
+    ],
+    "steps": [
+      "Fry onion, garlic and ginger to a dark paste.",
+      "Brown the chicken, add tomato and spices.",
+      "Pour in coconut milk and simmer until thick and glossy."
+    ],
+    "flavorText": "Dark and lucky, like a cat crossing your path twice."
+  },
+  {
+    "id": "enchanted-mash",
+    "name": "Enchanted Mash",
+    "servings": 4,
+    "ingredients": [
+      { "name": "potato", "grams": 700 },
+      { "name": "butter", "grams": 60 },
+      { "name": "milk", "grams": 120 },
+      { "name": "garlic", "grams": 10 }
+    ],
+    "steps": [
+      "Boil potato until a fork slides through like a charm.",
+      "Warm milk with garlic and butter.",
+      "Mash together until clouds form."
+    ],
+    "flavorText": "So smooth it seems bewitched."
+  },
+  {
+    "id": "frogs-breath-frittata",
+    "name": "Frog's Breath Frittata",
+    "servings": 4,
+    "ingredients": [
+      { "name": "egg", "grams": 300 },
+      { "name": "spinach", "grams": 120 },
+      { "name": "cheese", "grams": 80 },
+      { "name": "onion", "grams": 80 },
+      { "name": "potato", "grams": 200 }
+    ],
+    "steps": [
+      "Soften onion and potato in a pan.",
+      "Wilt in spinach, pour over beaten egg and scatter cheese.",
+      "Finish under a grill until the top sets and puffs."
+    ],
+    "flavorText": "Green-flecked and earthy, like the sigh of a contented frog."
+  },
+  {
+    "id": "pumpkin-lantern-soup",
+    "name": "Pumpkin Lantern Soup",
+    "servings": 6,
+    "ingredients": [
+      { "name": "pumpkin", "grams": 800 },
+      { "name": "onion", "grams": 120 },
+      { "name": "garlic", "grams": 12 },
+      { "name": "ginger", "grams": 12 },
+      { "name": "cream", "grams": 80 }
+    ],
+    "steps": [
+      "Roast pumpkin until the edges caramelize.",
+      "Sweat onion, garlic and ginger, then add the pumpkin and stock.",
+      "Blend smooth and swirl in cream."
+    ],
+    "flavorText": "Glows orange in the bowl like a lantern on the porch."
+  },
+  {
+    "id": "serpent-skin-tacos",
+    "name": "Serpent Skin Tacos",
+    "servings": 4,
+    "ingredients": [
+      { "name": "tortilla", "grams": 200 },
+      { "name": "beef", "grams": 400 },
+      { "name": "onion", "grams": 100 },
+      { "name": "tomato", "grams": 150 },
+      { "name": "chili", "grams": 8 },
+      { "name": "cheese", "grams": 80 }
+    ],
+    "steps": [
+      "Brown beef with onion and chili.",
+      "Warm the tortillas until supple as shed skin.",
+      "Pile on the beef, fresh tomato and a drift of cheese."
+    ],
+    "flavorText": "Rolled tight and scaled with melted cheese."
+  },
+  {
+    "id": "witchs-garden-salad",
+    "name": "Witch's Garden Salad",
+    "servings": 2,
+    "ingredients": [
+      { "name": "lettuce", "grams": 150 },
+      { "name": "cucumber", "grams": 120 },
+      { "name": "tomato", "grams": 150 },
+      { "name": "onion", "grams": 40 },
+      { "name": "olive oil", "grams": 30 }
+    ],
+    "steps": [
+      "Tear lettuce into a wooden bowl.",
+      "Slice cucumber, tomato and onion thin as petals.",
+      "Dress with olive oil, salt and a squeeze of lemon."
+    ],
+    "flavorText": "Picked at midnight from a garden that only grows under the moon."
+  },
+  {
+    "id": "conjurers-chili",
+    "name": "Conjurer's Chili",
+    "servings": 6,
+    "ingredients": [
+      { "name": "bean", "grams": 400 },
+      { "name": "beef", "grams": 400 },
+      { "name": "tomato", "grams": 400 },
+      { "name": "onion", "grams": 150 },
+      { "name": "chili", "grams": 10 },
+      { "name": "garlic", "grams": 15 }
+    ],
+    "steps": [
+      "Brown beef with onion, garlic and chili.",
+      "Add tomato and bean with a little stock.",
+      "Simmer low until thick enough to stand a spoon in."
+    ],
+    "flavorText": "Conjured to warm the bones of the whole coven."
+  },
+  {
+    "id": "moon-milk-porridge",
+    "name": "Moon Milk Porridge",
+    "servings": 2,
+    "ingredients": [
+      { "name": "oat", "grams": 100 },
+      { "name": "milk", "grams": 400 },
+      { "name": "honey", "grams": 30 },
+      { "name": "cinnamon", "grams": 3 }
+    ],
+    "steps": [
+      "Simmer oats in milk, stirring widdershins.",
+      "Sweeten with honey and dust with cinnamon.",
+      "Eat before the moon sets."
+    ],
+    "flavorText": "Pale and calming, said to bring prophetic dreams."
+  },
+  {
+    "id": "raven-wing-rice",
+    "name": "Raven Wing Rice",
+    "servings": 4,
+    "ingredients": [
+      { "name": "rice", "grams": 300 },
+      { "name": "egg", "grams": 100 },
+      { "name": "pea", "grams": 100 },
+      { "name": "carrot", "grams": 100 },
+      { "name": "onion", "grams": 80 },
+      { "name": "soy sauce", "grams": 30 }
+    ],
+    "steps": [
+      "Fry cold rice hard until the grains leap.",
+      "Push aside, scramble egg, then fold everything together.",
+      "Season with soy sauce until it gleams black as a raven's wing."
+    ],
+    "flavorText": "Glossy, dark and quick as a bird taking flight."
+  },
+  {
+    "id": "hemlock-hummus",
+    "name": "Hemlock Hummus (perfectly safe)",
+    "servings": 4,
+    "ingredients": [
+      { "name": "chickpea", "grams": 400 },
+      { "name": "garlic", "grams": 10 },
+      { "name": "tahini", "grams": 60 },
+      { "name": "lemon", "grams": 40 },
+      { "name": "olive oil", "grams": 40 }
+    ],
+    "steps": [
+      "Blend chickpea with garlic, tahini and lemon.",
+      "Loosen with cold water until silky.",
+      "Pool olive oil on top and swear it contains no hemlock."
+    ],
+    "flavorText": "Named to scare the neighbours. It is only chickpeas."
+  },
+  {
+    "id": "cobweb-carbonara",
+    "name": "Cobweb Carbonara",
+    "servings": 4,
+    "ingredients": [
+      { "name": "pasta", "grams": 400 },
+      { "name": "egg", "grams": 120 },
+      { "name": "cheese", "grams": 80 },
+      { "name": "bacon", "grams": 150 }
+    ],
+    "steps": [
+      "Crisp the bacon until it shatters.",
+      "Toss hot pasta with beaten egg and cheese off the heat so it turns to silk, not scramble.",
+      "Fold in the bacon and a flood of black pepper."
+    ],
+    "flavorText": "Strands cling together like old cobwebs in the rafters."
+  },
+  {
+    "id": "shapeshifter-stir-fry",
+    "name": "Shapeshifter Stir-Fry",
+    "servings": 3,
+    "ingredients": [
+      { "name": "chicken", "grams": 300 },
+      { "name": "pepper", "grams": 150 },
+      { "name": "broccoli", "grams": 200 },
+      { "name": "carrot", "grams": 100 },
+      { "name": "garlic", "grams": 12 },
+      { "name": "soy sauce", "grams": 30 }
+    ],
+    "steps": [
+      "Sear chicken in a screaming-hot wok.",
+      "Throw in the vegetables and garlic and keep everything moving.",
+      "Splash with soy sauce and serve at once."
+    ],
+    "flavorText": "Change the vegetables with the season; it becomes a different beast each time."
+  },
+  {
+    "id": "banshee-banana-bread",
+    "name": "Banshee Banana Bread",
+    "servings": 8,
+    "ingredients": [
+      { "name": "banana", "grams": 300 },
+      { "name": "flour", "grams": 250 },
+      { "name": "sugar", "grams": 150 },
+      { "name": "egg", "grams": 100 },
+      { "name": "butter", "grams": 100 }
+    ],
+    "steps": [
+      "Mash the blackest bananas you can find.",
+      "Beat with butter, sugar and egg, then fold in flour.",
+      "Bake until a skewer comes out clean and the crust cracks like a scream."
+    ],
+    "flavorText": "The darker the banana, the louder the banshee."
+  },
+  {
+    "id": "swamp-pea-soup",
+    "name": "Swamp Pea Soup",
+    "servings": 4,
+    "ingredients": [
+      { "name": "pea", "grams": 400 },
+      { "name": "onion", "grams": 100 },
+      { "name": "potato", "grams": 200 },
+      { "name": "mint", "grams": 10 }
+    ],
+    "steps": [
+      "Sweat onion, add potato and stock, simmer until tender.",
+      "Add pea and mint and cook just two minutes to keep it green.",
+      "Blend to a swamp-coloured smoothness."
+    ],
+    "flavorText": "Green and murky, but far friendlier than it looks."
+  },
+  {
+    "id": "gravediggers-gratin",
+    "name": "Gravedigger's Gratin",
+    "servings": 6,
+    "ingredients": [
+      { "name": "potato", "grams": 800 },
+      { "name": "cream", "grams": 300 },
+      { "name": "cheese", "grams": 150 },
+      { "name": "garlic", "grams": 12 }
+    ],
+    "steps": [
+      "Layer thin potato slices in a dish rubbed with garlic.",
+      "Pour over cream and bury under cheese.",
+      "Bake slow until the top is a cracked, golden crust."
+    ],
+    "flavorText": "Layered deep, like earth over a fresh grave."
+  },
+  {
+    "id": "fairy-ring-flatbread",
+    "name": "Fairy Ring Flatbread",
+    "servings": 4,
+    "ingredients": [
+      { "name": "flour", "grams": 300 },
+      { "name": "yogurt", "grams": 150 },
+      { "name": "garlic", "grams": 10 },
+      { "name": "butter", "grams": 40 }
+    ],
+    "steps": [
+      "Knead flour and yogurt into a soft dough.",
+      "Roll into rounds and blister in a dry pan.",
+      "Brush with garlic butter while hot."
+    ],
+    "flavorText": "Round as a fairy ring; step inside at your own risk."
+  },
+  {
+    "id": "nightshade-noodles",
+    "name": "Nightshade Noodles (aubergine)",
+    "servings": 4,
+    "ingredients": [
+      { "name": "noodle", "grams": 300 },
+      { "name": "aubergine", "grams": 400 },
+      { "name": "garlic", "grams": 15 },
+      { "name": "soy sauce", "grams": 40 },
+      { "name": "chili", "grams": 6 }
+    ],
+    "steps": [
+      "Fry aubergine until collapsing and bronze.",
+      "Add garlic, chili and soy sauce to make a sticky glaze.",
+      "Toss through cooked noodles."
+    ],
+    "flavorText": "Aubergine is a true nightshade, but a delicious one."
+  },
+  {
+    "id": "coven-cornbread",
+    "name": "Coven Cornbread",
+    "servings": 8,
+    "ingredients": [
+      { "name": "cornmeal", "grams": 200 },
+      { "name": "flour", "grams": 120 },
+      { "name": "egg", "grams": 100 },
+      { "name": "milk", "grams": 240 },
+      { "name": "butter", "grams": 60 }
+    ],
+    "steps": [
+      "Whisk the dry together, then the wet, then marry them quickly.",
+      "Pour into a hot buttered pan.",
+      "Bake until golden and share around the circle."
+    ],
+    "flavorText": "Baked in a cast-iron pan passed down through thirteen witches."
+  },
+  {
+    "id": "elixir-of-roots",
+    "name": "Elixir of Roots",
+    "servings": 4,
+    "ingredients": [
+      { "name": "carrot", "grams": 250 },
+      { "name": "parsnip", "grams": 250 },
+      { "name": "potato", "grams": 250 },
+      { "name": "onion", "grams": 100 },
+      { "name": "garlic", "grams": 12 }
+    ],
+    "steps": [
+      "Toss all the roots with oil and roast until caramelized.",
+      "Simmer with stock, then blend to a thick elixir.",
+      "Season and serve steaming."
+    ],
+    "flavorText": "Pulled from the cold ground to put warmth back in your chest."
+  }
+]

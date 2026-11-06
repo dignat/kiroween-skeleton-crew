@@ -164,14 +164,14 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 ### Phase 5: The Witch's Pantry core (weeks 2 to 3)
 
-- [ ] 19. Data and logic
-  - [ ] 19.1 Recipe dataset: at least 25 original recipes themed as potions, with normalized ingredient names, grams per ingredient, and servings. Add a schema test
+- [x] 19. Data and logic
+  - [x] 19.1 Recipe dataset: at least 25 original recipes themed as potions, with normalized ingredient names, grams per ingredient, and servings. Add a schema test
     - _Requirements: 6.15, 14.1_
-  - [ ] 19.2 Label to ingredient mapping, with synonyms (for example "Granny Smith" to apple), based on Spike C
+  - [x] 19.2 Label to ingredient mapping, with synonyms (for example "Granny Smith" to apple), based on Spike C
     - _Requirements: 6.6, 6.7_
-  - [ ] 19.3 `suggestRecipes`: name-based matching that returns matched and missing ingredients and sorts by match
+  - [x] 19.3 `suggestRecipes`: name-based matching that returns matched and missing ingredients and sorts by match
     - _Requirements: 6.1, 6.8, 6.9_
-  - [ ] 19.4 Property tests: every returned recipe matches at least one ingredient, adding an ingredient never lowers a recipe's matched count, and matched plus missing equals the recipe's ingredient names with no overlap
+  - [x] 19.4 Property tests: every returned recipe matches at least one ingredient, adding an ingredient never lowers a recipe's matched count, and matched plus missing equals the recipe's ingredient names with no overlap
     - _Requirements: 10.7, 10.8, 10.9_
 
 - [ ] 20. Web UI
