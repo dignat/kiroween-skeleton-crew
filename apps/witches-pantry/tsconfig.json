@@ -3,9 +3,12 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    // The web UI runs in the browser. Task 20.1 adds the Vite setup,
-    // and task 21.1 adds a separate Node config for the MCP server.
-    "lib": ["esnext", "dom", "dom.iterable"]
+    // The web UI runs in the browser. Vite handles bundling (task 20).
+    // Task 21.1 adds a separate Node config for the MCP server.
+    "lib": ["esnext", "dom", "dom.iterable"],
+    // Vite serves modules; let the bundler resolve, and allow importing recipes.json.
+    "types": ["vite/client"],
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }

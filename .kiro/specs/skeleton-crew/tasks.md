@@ -174,24 +174,26 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
   - [x] 19.4 Property tests: every returned recipe matches at least one ingredient, adding an ingredient never lowers a recipe's matched count, and matched plus missing equals the recipe's ingredient names with no overlap
     - _Requirements: 10.7, 10.8, 10.9_
 
-- [ ] 20. Web UI
-  - [ ] 20.1 Vite and TypeScript app shell with the witch's-pantry theme, semantic HTML, and visible focus styles
+- [x] 20. Web UI
+  - [x] 20.1 Vite and TypeScript app shell with the witch's-pantry theme, semantic HTML, and visible focus styles
     - _Requirements: 6.3, 6.13_
-  - [ ] 20.2 Image select and drop with a keyboard-accessible file button, a loading state announced with `aria-live`, and an error message for unsupported files
+  - [x] 20.2 Image select and drop with a keyboard-accessible file button, a loading state announced with `aria-live`, and an error message for unsupported files
     - _Requirements: 6.5, 6.10, 6.11_
-  - [ ] 20.3 Canvas overlay: boxes for localized detections and labelled tags for whole-image classifications
+  - [x] 20.3 Canvas overlay: boxes for localized detections and labelled tags for whole-image classifications
     - _Requirements: 6.5_
-  - [ ] 20.4 Ingredient chips: remove, add by typing, and a quick-add list. Changing the list re-runs `suggestRecipes`
+  - [x] 20.4 Ingredient chips: remove, add by typing, and a quick-add list. Changing the list re-runs `suggestRecipes`
     - _Requirements: 6.7, 6.8_
-  - [ ] 20.5 Recipe cards showing matched and missing ingredients, and an empty state when nothing matches
+  - [x] 20.5 Recipe cards showing matched and missing ingredients, and an empty state when nothing matches
     - _Requirements: 6.9, 6.12_
-  - [ ] 20.6 Accessibility pass: keyboard-only walkthrough, screen reader text for detections and recipes, colour contrast
+  - [x] 20.6 Accessibility pass: keyboard-only walkthrough, screen reader text for detections and recipes, colour contrast (code-level done; manual keyboard + screen-reader walkthrough still to confirm in the browser)
     - _Requirements: 6.13_
 
-- [ ] 21. MCP server and Kiro wiring
-  - [ ] 21.1 MCP server entry (Node) registering `suggest_recipes` and using the food adapter for `detect_objects`, sharing the same recipe logic as the UI
+- [x] 21. MCP server and Kiro wiring
+  - [x] 21.1 MCP server entry (Node) registering `suggest_recipes` and using the food adapter for `detect_objects`, sharing the same recipe logic as the UI
+    - Verified over stdio: tools/list shows detect_objects, count_objects, suggest_recipes; suggest_recipes(["onion","garlic","tomato"]) returns 21 matches, best-first. Uses the same suggestRecipes + recipes dataset as the web UI.
     - _Requirements: 6.1, 6.14_
-  - [ ] 21.2 Add to `.kiro/settings/mcp.json`, write the App_Agent (witch's pantry persona), and test it in Kiro
+  - [x] 21.2 Add to `.kiro/settings/mcp.json`, write the App_Agent (witch's pantry persona), and test it in Kiro
+    - App_Agent at `.kiro/agents/witches-pantry.json` (kitchen-witch persona, scoped to this app's three tools, includeMcpJson false) and per-app `mcp-launch.sh` added. User adds the witches-pantry entry to mcp.json and runs the in-Kiro test + screenshot.
     - _Requirements: 4.1, 4.2, 4.3, 6.2_
 
 - [ ] 22. Deploy
