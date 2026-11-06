@@ -359,6 +359,28 @@ Not tried, and worth a short follow-up only if time allows: classifying image ti
 
 Decision: nutrition work (Phase 6, stretch) is not blocked on licensing.
 
+## Spike E result: scene comparison on real photos (decided)
+
+Ran COCO-SSD (default `lite_mobilenet_v2` base, pure-JS CPU backend, `@tensorflow/tfjs` 4.22.0, Node 22.23.0) on three before/after photo pairs taken by the author (apple, one_apple, tomatoes), decoded with `jpeg-js`. The spike script is `packages/skeleton/spike/spike-e-scene-comparison.ts`: it detects objects in both frames, matches them per label by nearest normalized box-centre, and reports appeared / vanished / matched with the centre drift of each match.
+
+The pipeline was verified correct against a canonical COCO image (darknet `dog.jpg` → bicycle 96%, dog 86%, car 84%), so zero-detection results come from the photos, not the code.
+
+**Findings:**
+
+- **Framing is decisive.** Early top-down phone shots of small objects on a large table surface produced zero detections even at 0.01 confidence, on both the `lite_mobilenet_v2` and heavier `mobilenet_v2` bases, at full size and downscaled, and across all four rotations. COCO-SSD downscales to ~300×300 internally, so an object filling ~3% of a 4000×3000 frame becomes a tiny blob. Straight-on shots with objects filling more of the frame did detect.
+- **Detection is unstable between near-identical frames.** In the `one_apple` pair the before frame found `dining table, cake, apple` but the after frame found nothing; in the `tomatoes` pair detections differed between frames. The same object is confidently found in one frame and missed in the next. This is the real limiter, not the drift threshold.
+- **Labels are often wrong on food.** Tomatoes were read as `apple` and `cake`; a table edge as `vase`. COCO-SSD has no tomato class and few food classes (consistent with the design's earlier note).
+- **When an object IS detected in both frames, drift is tiny.** The one matched object across all pairs (an apple in the tomatoes pair) drifted **2.4%** of normalized image size. This confirms the core premise: a genuinely unchanged object barely moves, so a small `moveTolerance` cleanly separates "unchanged" from "moved".
+
+**Decision:**
+
+- **`moveTolerance` default = 0.05 (5% normalized centre distance).** The measured unchanged-object drift floor was 2.4%; 5% absorbs camera jitter with margin while still flagging real moves, which are much larger. The CLI exposes `--tolerance` to override.
+- **Default confidence threshold = 0.5.** Lower thresholds did not improve stability on these photos, only added mislabels.
+- **"Moved" is reported only for a label matched in both frames** (same label, centre distance above tolerance). Because detection flickers, the primary, reliable output is **appeared / vanished per label**; "moved" is a best-effort extra. This is the fallback named in task 14.1, adopted as the main design rather than a last resort.
+- **The app and its demo must use frame-filling, straight-on subjects from COCO's classes.** The CLI `--help` and README should say: take both photos from the same spot, with objects large and clearly separated.
+
+Task 15 (`compareScenes`) proceeds on this basis: match per label by nearest normalized centre, classify each matched pair as unchanged (drift ≤ tolerance) or moved (drift > tolerance), and report unmatched detections as appeared/vanished. The 2.4%/5% numbers and the instability caveat are the concrete inputs.
+
 ## Phase 3 implementation notes (skeleton package)
 
 Decisions made while building the skeleton that differ from, or add to, the sketches above:

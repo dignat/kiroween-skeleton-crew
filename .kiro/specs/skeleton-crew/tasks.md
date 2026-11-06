@@ -124,35 +124,35 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 ### Phase 4: Poltergeist Detector CLI (week 2)
 
-- [ ] 14a. Spike E: scene comparison on real photos (blocks task 15)
+- [x] 14.1 Spike E: scene comparison on real photos (blocks task 15)
   - Take two photos of the same desk or shelf from the same spot (a phone propped on a book works), then move two or three objects between them and remove one. Save them as your own photos in `samples/` (for example `desk-before.jpg` and `desk-after.jpg`), with no brand names, logos, people, or screens showing anything personal
   - Run COCO-SSD on both and list what it detects. Check three things: does it find the same objects in both photos when nothing changed, how far do box centres drift between two photos of an unchanged scene, and does a moved object keep its label
   - Take a third photo of the unchanged desk from the same spot and compare it with the first. The result should report nothing, and anything it does report is a false change that the thresholds must absorb
   - Decision: set the default `moveTolerance` and confidence threshold from the measured drift, and record in `design.md` whether the idea works. If the false changes are too many to fix with thresholds, the fallback is to compare counts per label only (appeared and vanished, no "moved")
   - _Requirements: 5.1, 5.3, 5.6_
 
-- [ ] 15. App logic
-  - [ ] 15.1 `compareScenes` pure function as described in `design.md`: match Detections per label by normalized box-centre distance, then report appeared, vanished, moved and unchanged
+- [x] 15. App logic
+  - [x] 15.1 `compareScenes` pure function as described in `design.md`: match Detections per label by normalized box-centre distance, then report appeared, vanished, moved and unchanged
     - _Requirements: 5.1, 5.10_
-  - [ ] 15.2 Property test: every Detection in the "before" list is reported exactly once (vanished, moved, unchanged) and every Detection in the "after" list exactly once (appeared, moved, unchanged)
+  - [x] 15.2 Property test: every Detection in the "before" list is reported exactly once (vanished, moved, unchanged) and every Detection in the "after" list exactly once (appeared, moved, unchanged)
     - _Requirements: 10.5_
-  - [ ] 15.3 Property tests: swapping "before" and "after" swaps the appeared and vanished counts per label, and comparing a scene with itself reports nothing appeared, vanished or moved
+  - [x] 15.3 Property tests: swapping "before" and "after" swaps the appeared and vanished counts per label, and comparing a scene with itself reports nothing appeared, vanished or moved
     - _Requirements: 10.6_
-  - [ ] 15.4 Example tests for the tolerance edges: an object just inside and just outside `moveTolerance`, Detections without a bounding box, two objects of one label swapping places, and empty lists
+  - [x] 15.4 Example tests for the tolerance edges: an object just inside and just outside `moveTolerance`, Detections without a bounding box, two objects of one label swapping places, and empty lists
     - _Requirements: 5.6, 5.9_
-  - [ ] 15.5 Report formatter: human-readable "haunting report" and JSON output, with a clear message when nothing was detected in either photo
+  - [x] 15.5 Report formatter: human-readable "haunting report" and JSON output, with a clear message when nothing was detected in either photo
     - _Requirements: 5.3, 5.4, 5.9_
-  - [ ] 15.6 Scene loader: run the Detector on both photos one after the other, and name the photo that failed if one cannot be read
+  - [x] 15.6 Scene loader: run the Detector on both photos one after the other, and name the photo that failed if one cannot be read
     - _Requirements: 5.8_
 
-- [ ] 16. CLI and MCP server
-  - [ ] 16.1 CLI with `util.parseArgs`: `compare <before> <after>`, `--json`, `--min-confidence`, `--tolerance`, `--help`. Results go to stdout and progress to stderr. Exit code 1 when a photo is missing or unsupported. The usage text says to take both photos from the same spot
+- [x] 16. CLI and MCP server
+  - [x] 16.1 CLI with `util.parseArgs`: `compare <before> <after>`, `--json`, `--min-confidence`, `--tolerance`, `--help`. Results go to stdout and progress to stderr. Exit code 1 when a photo is missing or unsupported. The usage text says to take both photos from the same spot
     - _Requirements: 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
-  - [ ] 16.2 `bin` entry so `poltergeist-detector compare <before> <after>` works after `pnpm link --global`
+  - [x] 16.2 `bin` entry so `poltergeist-detector compare <before> <after>` works after `pnpm link --global`
     - _Requirements: 5.3_
-  - [ ] 16.3 MCP server entry registering `compare_scenes` on top of the built-ins, using the same `compareScenes` logic as the CLI
+  - [x] 16.3 MCP server entry registering `compare_scenes` on top of the built-ins, using the same `compareScenes` logic as the CLI
     - _Requirements: 5.1, 5.10_
-  - [ ] 16.4 Unit tests for argument parsing, exit codes, and the error paths
+  - [x] 16.4 Unit tests for argument parsing, exit codes, and the error paths
     - _Requirements: 5.7, 5.8, 5.9_
 
 - [ ] 17. Kiro wiring for the CLI app

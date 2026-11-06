@@ -5,10 +5,18 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "bin": {
+    "poltergeist-detector": "./src/cli.ts"
+  },
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "start": "node --import tsx src/cli.ts",
+    "mcp": "node --import tsx src/mcp-server.ts"
   },
   "dependencies": {
     "@skeleton-crew/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
   }
 }
