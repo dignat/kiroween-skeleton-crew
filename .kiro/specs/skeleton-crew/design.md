@@ -265,6 +265,15 @@ A second small stretch on top of the nutrition work, added at the user's request
 - Shared across surfaces like the rest: the web UI shows an accessible checkbox group plus a neutral `describeFilters` line ("Showing potions with no meat"), and the `suggest_recipes` Tool accepts the same `filters` array.
 - Guardrails: the disclaimer states the filters are a choice, not advice; a test asserts `describeFilters` output contains none of weight/diet/diabetes/lose/calorie-restriction wording. Property tests cover that filtering only removes (never adds) recipes, that every returned recipe passes every selected filter, and that adding a filter never grows the result.
 
+### Food-relevance guardrail (stretch, Requirement 16)
+
+Added when the user asked for a guard against harmful or inappropriate uploads, as an agent with a tool. A true harmful/NSFW classifier needs a dedicated safety model or a keyed cloud service, which the no-paid-service / no-API-key rules forbid, and a weak on-device stand-in dressed as "safety" would be worse than honest scope. So it was reshaped into a **food-relevance** check, framed truthfully as relevance, not moderation.
+
+- `food-relevance.ts` holds `assessFoodRelevance(detections)`, a pure function returning `{ isFood, ingredients, message }`. `isFood` is true exactly when the existing allowlist + normalization yields at least one ingredient.
+- Shared across surfaces: the web UI runs it in the upload handler (a non-food image shows a friendly decline and adds no chips), and a `check_image` MCP tool wraps it (runs the detector on a path, returns the assessment as JSON).
+- The Pantry App_Agent calls `check_image` first and declines non-food images before suggesting recipes.
+- Honesty is enforced at every layer — tool description, agent prompt, UI, and code comments all state it is food-relevance only and cannot detect harmful or inappropriate content; a test asserts the decline message carries no medical/harm/weight wording. Property tests: `isFood` is true iff an ingredient was found, and returned ingredients are unique. Because `assessFoodRelevance` reflects a weak detector, a real food photo the model does not recognize can read as non-food; the editable chips remain the fallback.
+
 ## Data models
 
 - **Detection** — see above.

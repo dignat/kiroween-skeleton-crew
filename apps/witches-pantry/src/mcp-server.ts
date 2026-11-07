@@ -13,6 +13,7 @@ import {
   serveOverStdio,
   z,
 } from '@skeleton-crew/core/node';
+import { assessFoodRelevance } from './food-relevance.js';
 import { normalizeIngredients } from './ingredient-map.js';
 import { createFoodDetector } from './node-detector.js';
 import { nutritionTable } from './nutrition.js';
@@ -38,6 +39,13 @@ const suggestInput = z.object({
       'Dietary preference filters (a choice, not advice). All must pass. They describe the recipe: ' +
       'vegetarian (no meat/poultry/fish), lowerSugar, lowerSodium, higherFibre, higherProtein, lighter (fewer calories per serving).',
     ),
+});
+
+const checkImageInput = z.object({
+  imagePath: z
+    .string()
+    .min(1)
+    .describe('Path to a JPEG or PNG image, resolved inside the allowed images folder.'),
 });
 
 /** Builds the server: built-in tools plus suggest_recipes, sharing one detector. */
@@ -97,6 +105,21 @@ export function createServer() {
           : undefined,
       }));
       return jsonResult({ have, count: result.length, recipes: result });
+    },
+  });
+
+  registerTool(server, {
+    name: 'check_image',
+    description:
+      'Check whether an image looks like food before suggesting recipes. Runs the food detector ' +
+      'and reports whether any ingredients were recognized, the ingredient names, and a message. ' +
+      'This is a relevance check (is this a food photo?), not content moderation — it cannot judge ' +
+      'whether an image is harmful or inappropriate. Use it to decline non-food images politely.',
+    inputSchema: checkImageInput,
+    handler: async (input) => {
+      const detections = await detector.detect({ kind: 'filePath', path: input.imagePath });
+      const assessment = assessFoodRelevance(detections);
+      return jsonResult(assessment);
     },
   });
 

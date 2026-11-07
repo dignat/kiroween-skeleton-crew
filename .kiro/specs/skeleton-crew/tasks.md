@@ -238,6 +238,10 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
   - `dietary-filters.ts` (pure predicates + documented thresholds), wired into `suggestRecipes` (AND before sort), the web UI (accessible checkbox group + neutral description line + extended disclaimer), and the `suggest_recipes` MCP tool (optional `filters` array). 10 property + example tests; 150 tests pass; verified over stdio (23 → 8 for vegetarian+lighter).
   - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6_
 
+- [x]* 27b. Food-relevance guardrail (stretch, Requirement 16)
+  - A request to guard against harmful/inappropriate uploads was reshaped (declined as content-moderation the on-device model can't honestly do) into a food-relevance check. `food-relevance.ts` + a `check_image` MCP tool + a web-UI gate + the Pantry agent calling it first. 7 property + example tests (incl. the decline message has no medical/harm wording); 160 tests pass. Honesty enforced in tool/agent/UI/comments: relevance only, not moderation.
+  - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
+
 ### Phase 7: Kiro layer (build as soon as the pattern is stable, finish in week 4)
 
 - [ ] 28. Developer custom agents
@@ -272,15 +276,18 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 ### Phase 8: Submission (week 4 and buffer)
 
-- [ ] 32. Documentation
-  - [ ] 32.1 Root `README.md`: what it is, features of the skeleton and both apps, Node and pnpm versions with install steps, deployed URL, how to run the CLI, credits and licenses for models and data
+- [x] 32. Documentation
+  - [x] 32.1 Root `README.md`: what it is, features of the skeleton and both apps, Node and pnpm versions with install steps, deployed URL, how to run the CLI, credits and licenses for models and data
+    - Written from real repo facts (Node 22.23.0 / pnpm 10.34.9, deployed Pages URL, CLI usage, MIT + TF.js Apache-2.0 + USDA CC0 credits). Covers all stretch features and a "known limitations / future work" section. Living doc — update as features change.
     - _Requirements: 1.6, 12.5_
-  - [ ] 32.2 README for each app with setup and run instructions
+  - [x] 32.2 README for each app with setup and run instructions
+    - `apps/poltergeist-detector/README.md` and `apps/witches-pantry/README.md`: features, requirements, run commands, MCP/Kiro wiring, tests, and credits per app.
     - _Requirements: 1.5, 12.4_
 
-- [ ] 33. Repository checks
+- [x] 33. Repository checks
   - Confirm `.gitignore` does not exclude `.kiro/`, there is no copyrighted material or secret in the repo, and the README credits the model and data sources
-  - After pushing: confirm the LICENSE shows in the GitHub About section, add a description and topics
+  - Verified: `.gitignore` explicitly keeps `.kiro/` (git check-ignore confirms not ignored); all 14 `.kiro` files tracked (agents, hooks, settings, specs, steering). No `.env`/key/credential files tracked; secret-pattern scan found only false positives (a GitHub Actions permission, test fixture `secret.png`, doc wording). All 21 tracked images are in `samples/`, original photos per `samples/README.md` (corrected to list both the fridge set and the before/after pairs); no stock/logos/audio. LICENSE present and is MIT. README has all model/data credits (TF.js Apache-2.0, USDA CC0, MIT).
+  - Pending the user (GitHub web, after pushing): confirm the LICENSE shows in the About section, add a repo description and topics.
   - _Requirements: 12.1, 12.2, 12.3, 12.6_
 
 - [ ] 34. Clean-clone test

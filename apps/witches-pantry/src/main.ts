@@ -7,7 +7,8 @@ import type { DetectorImageInput } from '@skeleton-crew/core';
 import { createBrowserImageDecoder, fileToDetectorInput } from './browser-image-decoder.js';
 import { FOOD_LABELS } from './food-labels.js';
 import { describeFilters } from './dietary-filters.js';
-import { normalizeIngredients, normalizeIngredient } from './ingredient-map.js';
+import { assessFoodRelevance } from './food-relevance.js';
+import { normalizeIngredient } from './ingredient-map.js';
 import { nutritionTable } from './nutrition.js';
 import { recipes } from './recipes.js';
 import { suggestRecipes } from './suggest-recipes.js';
@@ -177,24 +178,22 @@ async function handleFile(file: File): Promise<void> {
     if (img.complete) drawImageToCanvas(overlay, img);
     drawDetections(overlay, detections);
 
-    const found = normalizeIngredients(detections.map((d) => d.label));
-    if (found.length === 0) {
-      setStatus('No ingredients recognized. Add them by hand below, or try a clearer photo.');
-      detectionSummary.textContent = 'No ingredients were detected in the image.';
+    // Food-relevance gate: the same shared check the check_image MCP tool uses.
+    // This is a relevance check (is this a food photo?), not content moderation.
+    const relevance = assessFoodRelevance(detections);
+    if (!relevance.isFood) {
+      setStatus(relevance.message);
+      detectionSummary.textContent = relevance.message;
     } else {
       let added = 0;
-      for (const name of found) {
+      for (const name of relevance.ingredients) {
         if (!ingredients.includes(name)) {
           ingredients.push(name);
           added += 1;
         }
       }
-      setStatus(
-        `Found ${found.length} possible ingredient${found.length === 1 ? '' : 's'}: ${found.join(
-          ', ',
-        )}. Please check them below.`,
-      );
-      detectionSummary.textContent = `Detected ${found.join(', ')}. Added ${added} to your ingredients.`;
+      setStatus(relevance.message);
+      detectionSummary.textContent = `Detected ${relevance.ingredients.join(', ')}. Added ${added} to your ingredients.`;
       refresh();
     }
   } catch (error) {

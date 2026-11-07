@@ -1,0 +1,127 @@
+# 🦴 The Skeleton Crew
+
+A reusable **object-detection skeleton** with a built-in **MCP server kit**, and **two apps built on it** — a spooky CLI and a Halloween-themed web app. Kiroween Hackathon 2026, *Skeleton Crew* category.
+
+One template. Two very different apps. Every app's CLI/UI and its Kiro agent share the same code.
+
+- 🔮 **The Witch's Pantry** — a web app: photograph your ingredients and it suggests recipes, themed as potions, with a playful "Curse Level", dietary filters, and a food-relevance guard.
+- 👻 **The Poltergeist Detector** — a CLI: compare two photos of the same place and it reports what *appeared, vanished, or moved*.
+- 🧩 **`@skeleton-crew/core`** — the shared skeleton: a pluggable detector abstraction and an MCP server kit both apps are built from.
+
+**Live web app:** https://dignat.github.io/kiroween-skeleton-crew/
+
+> Detection runs entirely on-device with TensorFlow.js — no paid services, no API keys. Kiro is the only AI layer: custom agents call each app's own MCP tools.
+
+---
+
+## What's in the box
+
+```
+packages/skeleton/          @skeleton-crew/core — detector abstraction + MCP server kit
+apps/poltergeist-detector/  CLI: before/after scene comparison
+apps/witches-pantry/        web app: food detection + recipe "potions"
+samples/                    sample images (original, no copyrighted material)
+.kiro/                      specs, steering, hooks, agents, MCP settings (all committed)
+```
+
+### The skeleton (`@skeleton-crew/core`)
+
+- A `Detector` with a swappable `ModelAdapter`, so an app picks a model without touching the interface. Two adapters ship: `CocoSsdAdapter` (80 COCO classes, with bounding boxes) and `MobileNetFoodAdapter` (whole-image food classification, filtered to an app-supplied allowlist).
+- A browser-safe entry point (`@skeleton-crew/core`) and a Node-only entry point (`@skeleton-crew/core/node`), enforced by a build test so the browser bundle never pulls in Node modules.
+- An **MCP server kit**: `createSkeletonServer` (pre-wired with `detect_objects` and `count_objects`), `registerTool` (snake_case names, duplicate-name rejection, Zod validation, errors become results not crashes), and a stdio helper that keeps stdout clean for the protocol.
+- The model loads once per detector and is reused.
+
+### 👻 Poltergeist Detector (CLI)
+
+Compare two photos taken from the same spot and get a "haunting report".
+
+- `compare_scenes` matches detections per label by normalized box-centre distance, and reports **appeared / vanished / moved / unchanged**.
+- CLI flags: `--json`, `--min-confidence`, `--tolerance`, `--help`.
+- A `list_labels` tool lists the 80 object classes the detector knows.
+- Honest about its model: COCO-SSD labels flicker between near-identical frames, so a lone appeared/vanished is treated with suspicion and only a matched "moved" is trusted (see the Spike E note in the spec).
+
+### 🔮 The Witch's Pantry (web app)
+
+Drop in a photo of what you have and brew a recipe.
+
+- On-device food detection (MobileNet v2) **pre-fills** an editable ingredient list — detection is a best-effort helper, the chips are the primary input, so the app works even when detection is weak.
+- `suggest_recipes` matches 27 original potion recipes by ingredient, showing what you have and what you still need.
+- **Curse Level & Potion Purity** — a playful per-serving nutrition score (0–100) from a local USDA-based nutrition table, with a "Best match / Purest first" sort.
+- **Dietary filters** (a choice, not advice) — vegetarian, lower sugar, lower sodium, higher fibre, higher protein, lighter.
+- **Food-relevance guard** — a `check_image` tool (and a UI gate) that declines non-food images. This is a relevance check, *not* content moderation.
+- Accessible: semantic HTML, keyboard support, `aria-live` status, visible focus, and meters readable without relying on colour.
+
+> The nutrition, dietary, and curse-level features are a **playful guide, not medical or dietary advice.**
+
+---
+
+## Requirements
+
+- **Node 22** (pinned in `.nvmrc` to `22.23.0`; `engines.node >= 22.12.0`)
+- **pnpm 10** (pinned to `10.34.9` via `packageManager`)
+
+If you use [nvm](https://github.com/nvm-sh/nvm): `nvm use` picks the right Node. If you don't use nvm, make sure Node 22 is the default `node` on your PATH — Kiro and the MCP launchers spawn `node` from the environment, and an older Node will fail.
+
+## Setup
+
+```bash
+nvm use            # selects Node 22.23.0 from .nvmrc
+pnpm install       # installs the workspace (no native build step, no API keys)
+pnpm typecheck     # type-checks every package
+pnpm test          # runs the full test suite (Vitest + fast-check)
+```
+
+## Run the Witch's Pantry (web app)
+
+```bash
+pnpm --filter witches-pantry dev      # dev server at http://localhost:5173/
+pnpm --filter witches-pantry build    # static build into apps/witches-pantry/dist
+pnpm --filter witches-pantry preview  # preview the production build
+```
+
+Or just open the deployed app: **https://dignat.github.io/kiroween-skeleton-crew/**
+First use downloads the ~14 MB MobileNet model in the browser; after that it's cached.
+
+## Run the Poltergeist Detector (CLI)
+
+```bash
+# from the repo root, on Node 22:
+pnpm --filter poltergeist-detector start compare <before.jpg> <after.jpg>
+
+# examples
+pnpm --filter poltergeist-detector start compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg
+pnpm --filter poltergeist-detector start compare a.jpg b.jpg --json --tolerance 0.08
+```
+
+Take both photos from the same spot, with objects large and clearly separated (the detector only knows the 80 COCO classes). `--help` shows all options. A missing or unsupported photo exits with code 1 and names the photo.
+
+## Kiro: agents + MCP
+
+Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MCP server (`.kiro/settings/mcp.json`). After cloning, reload the Kiro window so it picks up the servers, then select an app agent:
+
+- **witches-pantry** — the kitchen-witch agent: `check_image`, `detect_objects`, `count_objects`, `suggest_recipes`.
+- **poltergeist-detector** — the ghost-hunter agent: `detect_objects`, `count_objects`, `compare_scenes`, `list_labels`.
+- **tool-builder** / **app-generator** — developer agents that scaffold a new MCP tool, or a whole new app from the skeleton, following the project's steering rules.
+
+Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with.
+
+## Testing
+
+- `pnpm test` — unit and **property-based** tests (`fast-check`), run offline with fake adapters.
+- `pnpm test:models` — opt-in integration tests that load the real models (`RUN_MODEL_TESTS=1`).
+
+## Credits & licenses
+
+- **Code:** MIT (see `LICENSE`).
+- **Detection models:** [COCO-SSD](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd) and [MobileNet](https://github.com/tensorflow/tfjs-models/tree/master/mobilenet) via [TensorFlow.js](https://www.tensorflow.org/js) (Apache-2.0).
+- **Nutrition data:** derived from the U.S. Department of Agriculture, Agricultural Research Service, FoodData Central — https://fdc.nal.usda.gov/ (public domain, CC0 1.0).
+- **Recipes & sample images:** original to this project. No third-party trademarks or copyrighted material.
+
+## Project notes
+
+Built spec-first: requirements, design, and tasks live in `.kiro/specs/skeleton-crew/`, and `KIRO_USAGE.md` records how Kiro was used (agents, hooks, steering, MCP, property tests, and the debugging stories behind them).
+
+### Known limitations / future work
+
+- Food detection uses general-purpose MobileNet v2, which misses many raw ingredients — the editable chips cover the gap. A fruit/vegetable-specialized model (36+ classes) is noted as future work.
+- `check_image` is a food-relevance gate, not content moderation; true safety moderation would need a dedicated service.

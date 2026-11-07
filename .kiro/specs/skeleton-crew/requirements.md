@@ -268,3 +268,17 @@ Each application supplies only configuration, app-specific tools, and a Kiro cus
 4. THE filters SHALL be applied by the same `suggestRecipes` logic shared by the web UI and the `suggest_recipes` Tool, and THE Tool SHALL accept an optional `filters` list so the App_Agent can use them.
 5. THE web UI SHALL present the filters as keyboard- and screen-reader-accessible controls, and SHALL show a neutral line describing what the active filters show (for example "Showing potions with no meat").
 6. THE filters, their labels, their descriptions, and the App_Agent wording SHALL NOT use medical, health-condition, weight-loss, body-shape, or calorie-restriction language. A filter describes the recipe, never a person or a health goal, and the UI SHALL state that the filters are a choice, not advice.
+
+### Requirement 16: Food-relevance guardrail (stretch)
+
+**User Story:** As a user, I want the app to notice when I upload something that is not food and ask me for an ingredients photo, so that I get a helpful nudge instead of a confusing empty result.
+
+**Priority:** stretch. Built on the existing food detector; reuses the same logic across the web UI and the MCP_Server.
+
+#### Acceptance Criteria
+
+1. THE Witch's Pantry SHALL assess whether an uploaded image looks like food by whether the food detector recognized any allowlisted ingredient in it.
+2. WHEN no food ingredient is recognized, THE web UI SHALL show a friendly message asking for a photo of ingredients, and SHALL NOT add any ingredient chips.
+3. THE Application SHALL expose a `check_image` Tool that runs the detector and returns whether the image is food, the recognized ingredient names, and a user-facing message, using the same assessment logic as the web UI.
+4. THE App_Agent SHALL call `check_image` before suggesting recipes and SHALL politely decline a non-food image rather than proceeding.
+5. THE `check_image` Tool, the App_Agent prompt, and the UI SHALL state that this is a food-relevance check only and SHALL NOT claim to detect harmful or inappropriate content; true content moderation is explicitly out of scope and would require a dedicated safety service.

@@ -26,6 +26,8 @@ export {
   FILTER_INFO,
   FILTER_THRESHOLDS,
 } from './dietary-filters.js';
+export { assessFoodRelevance } from './food-relevance.js';
+export type { FoodRelevanceResult } from './food-relevance.js';
 export {
   recipeSchema,
   recipeDatasetSchema,
