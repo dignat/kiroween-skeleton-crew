@@ -18,18 +18,20 @@ Point it at a "before" and an "after" photo taken from the same spot, and it pri
 
 ## Run it
 
-From the repo root:
+Run from the **repo root** on Node 22. The CLI reads image paths relative to the
+current directory (and only from inside it), so run it from the repo root and
+pass repo-root-relative paths such as `samples/...`:
 
 ```bash
-pnpm --filter poltergeist-detector start compare <before> <after> [options]
+node --import tsx apps/poltergeist-detector/src/cli.ts compare <before> <after> [options]
 ```
 
 Examples:
 
 ```bash
-pnpm --filter poltergeist-detector start compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg
-pnpm --filter poltergeist-detector start compare a.jpg b.jpg --json
-pnpm --filter poltergeist-detector start compare a.jpg b.jpg --tolerance 0.08 --min-confidence 0.6
+node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg
+node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg --json
+node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/before_apple.jpg samples/after_apple.jpg --tolerance 0.08 --min-confidence 0.6
 ```
 
 Options:

@@ -290,8 +290,9 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
   - Pending the user (GitHub web, after pushing): confirm the LICENSE shows in the About section, add a repo description and topics.
   - _Requirements: 12.1, 12.2, 12.3, 12.6_
 
-- [ ] 34. Clean-clone test
+- [x] 34. Clean-clone test
   - Clone into a fresh folder, run `nvm use`, `pnpm install`, `pnpm test`, `pnpm build`, run the CLI on the before and after photos in `samples/`, and open the deployed URL. Fix everything that breaks
+  - Cloned fresh from origin to /tmp (HEAD == origin/main, clean tree). `nvm use` → Node 22.23.0; `pnpm install --frozen-lockfile` clean (no native build); `pnpm typecheck` clean; `pnpm test` 157 passed / 3 skipped; `pnpm build` produced the web dist. CAUGHT A DOC BUG: the READMEs told users to run the CLI via `pnpm --filter poltergeist-detector start compare samples/...`, which fails because pnpm runs from the app folder and the Detector's allowed-root is the cwd, so repo-root `samples/...` paths are not found (and absolute paths outside the app dir are rejected by the security check). Fixed both READMEs to `node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/... samples/...` run from the repo root; re-verified report/--json/--help and missing-file exit 1 all work from the clone. Web app: build green; the deployed GitHub Pages URL is the judge path.
   - _Requirements: 1.3, 1.7, 12.4_
 
 - [ ] 35. Demo video (3 minutes or less, YouTube public)

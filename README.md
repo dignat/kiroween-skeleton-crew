@@ -84,13 +84,16 @@ First use downloads the ~14 MB MobileNet model in the browser; after that it's c
 
 ## Run the Poltergeist Detector (CLI)
 
+Run from the **repo root** on Node 22. The CLI reads image paths relative to the
+current directory, and only from inside it, so run it from the repo root and
+pass repo-root-relative paths (e.g. `samples/...`):
+
 ```bash
-# from the repo root, on Node 22:
-pnpm --filter poltergeist-detector start compare <before.jpg> <after.jpg>
+node --import tsx apps/poltergeist-detector/src/cli.ts compare <before.jpg> <after.jpg> [options]
 
 # examples
-pnpm --filter poltergeist-detector start compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg
-pnpm --filter poltergeist-detector start compare a.jpg b.jpg --json --tolerance 0.08
+node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg
+node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg --json --tolerance 0.08
 ```
 
 Take both photos from the same spot, with objects large and clearly separated (the detector only knows the 80 COCO classes). `--help` shows all options. A missing or unsupported photo exits with code 1 and names the photo.
