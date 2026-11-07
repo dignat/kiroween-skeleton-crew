@@ -233,6 +233,11 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 - [x]* 27. Checkpoint: review every tip and label against the wording rule, then update `KIRO_USAGE.md`
 
+- [x]* 27a. Dietary preference filters (stretch, Requirement 15)
+  - Added after the nutrition feature at the user's request. A request for health-condition / weight-loss / post-fasting advice was declined as medical advice and reshaped into objective preference filters that describe the recipe, not the person: vegetarian, lowerSugar, lowerSodium, higherFibre, higherProtein, lighter.
+  - `dietary-filters.ts` (pure predicates + documented thresholds), wired into `suggestRecipes` (AND before sort), the web UI (accessible checkbox group + neutral description line + extended disclaimer), and the `suggest_recipes` MCP tool (optional `filters` array). 10 property + example tests; 150 tests pass; verified over stdio (23 → 8 for vegetarian+lighter).
+  - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6_
+
 ### Phase 7: Kiro layer (build as soon as the pattern is stable, finish in week 4)
 
 - [ ] 28. Developer custom agents
@@ -246,19 +251,23 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
     - Pending: run in Kiro and screen-record for the video, confirm it builds, then delete the demo app so the repo keeps exactly two applications.
     - _Requirements: 7.2, 1.1_
 
-- [ ] 29. Remaining steering and hooks
-  - [ ] 29.1 `adding-a-tool.md` with `fileMatch` on the tool folders, and `adding-an-agent.md`
+- [x] 29. Remaining steering and hooks
+  - [x] 29.1 `adding-a-tool.md` with `fileMatch` on the tool folders, and `adding-an-agent.md`
+    - `adding-a-tool.md` uses `inclusion: fileMatch` scoped to `apps/*/src/mcp-server.ts` and the MCP kit; it captures the pure-function-first pattern, snake_case/Zod-from-core rules, stderr-only logging, and no-input tools. `adding-an-agent.md` is manual inclusion and documents the verified App_Agent format incl. the `allowedTools`-breaks-discovery finding, the launcher, and `includeMcpJson: false`.
     - _Requirements: 9.2, 9.3, 9.4_
-  - [ ] 29.2 Hook that checks a newly created tool file is registered and documented
+  - [x] 29.2 Hook that checks a newly created tool file is registered and documented
+    - `.kiro/hooks/tool-registration-check.json`: PostFileCreate on `apps/.*/src/.*\.ts$`, agent action that checks a new tool file has a test, is registered in mcp-server.ts with a snake_case Zod-schema tool, is well-described, and logs to stderr; does nothing for non-tool files.
     - _Requirements: 8.2_
 
-- [ ] 30. Compare surfaces and powers
+- [x] 30. Compare surfaces and powers
   - Check the Powers available in your Kiro and try the ones relevant to TypeScript, MCP, or testing. Note what each one added or didn't
   - Run one custom agent task from the Kiro CLI and note how it differed from the IDE
+  - Powers: none installed/relevant beyond what the steering + MCP kit already cover (recorded as "tried, nothing added"). CLI: `kiro-cli` 2.35.2 lists all four workspace agents; launching one needs `--v3` ("Mode not found" without it); MCP tools are registered under the default agent, and an App_Agent's inline MCP tools did NOT reliably surface in the CLI (compare_scenes failed with "Load context ... Failed"). Conclusion: the IDE is the reliable surface for this project's agents + MCP tools. Details in KIRO_USAGE.md.
   - _Requirements: 11.1_
 
-- [ ] 31. Spec versus vibe coding note
+- [x] 31. Spec versus vibe coding note
   - Build one small piece without a spec (a utility in the web UI, for example) and compare effort and quality with spec-driven tasks
+  - Vibe-coded localStorage persistence of the ingredient list in the Witch's Pantry (~20 lines in main.ts, no spec/test). Typecheck + build green. Comparison written up in KIRO_USAGE.md: vibe-coding suits small isolated low-risk niceties; the spec earns its overhead where there are invariants, shared logic, or blast radius.
   - _Requirements: 11.3_
 
 ### Phase 8: Submission (week 4 and buffer)

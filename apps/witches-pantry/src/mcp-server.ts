@@ -30,7 +30,14 @@ const suggestInput = z.object({
   sortBy: z
     .enum(['match', 'purity'])
     .optional()
-    .describe('Sort order. "match" (default) is by number of matched ingredients. "purity" is reserved for the nutrition feature.'),
+    .describe('Sort order. "match" (default) is by number of matched ingredients. "purity" sorts by ascending Curse Level (purest first).'),
+  filters: z
+    .array(z.enum(['vegetarian', 'lowerSugar', 'lowerSodium', 'higherFibre', 'higherProtein', 'lighter']))
+    .optional()
+    .describe(
+      'Dietary preference filters (a choice, not advice). All must pass. They describe the recipe: ' +
+      'vegetarian (no meat/poultry/fish), lowerSugar, lowerSodium, higherFibre, higherProtein, lighter (fewer calories per serving).',
+    ),
 });
 
 /** Builds the server: built-in tools plus suggest_recipes, sharing one detector. */
@@ -62,6 +69,7 @@ export function createServer() {
       const matches = suggestRecipes(have, recipes, {
         sortBy: input.sortBy ?? 'match',
         nutritionTable,
+        filters: input.filters,
       });
 
       // Return a compact, model-friendly shape (not the full Recipe objects),

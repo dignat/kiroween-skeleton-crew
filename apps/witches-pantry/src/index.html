@@ -89,12 +89,24 @@
           </label>
         </fieldset>
 
+        <fieldset class="diet-filters">
+          <legend>Dietary filters (your choice)</legend>
+          <label><input type="checkbox" name="filter" value="vegetarian" /> Garden-born <span class="desc">(no meat)</span></label>
+          <label><input type="checkbox" name="filter" value="lowerSugar" /> Unsweetened hex <span class="desc">(lower added sugar)</span></label>
+          <label><input type="checkbox" name="filter" value="lowerSodium" /> Unsalted charm <span class="desc">(lower sodium)</span></label>
+          <label><input type="checkbox" name="filter" value="higherFibre" /> Rootbound <span class="desc">(higher fibre)</span></label>
+          <label><input type="checkbox" name="filter" value="higherProtein" /> Strengthening <span class="desc">(higher protein)</span></label>
+          <label><input type="checkbox" name="filter" value="lighter" /> Faint brew <span class="desc">(lighter)</span></label>
+        </fieldset>
+        <p id="filter-desc" class="filter-desc" role="status" aria-live="polite"></p>
+
         <p id="recipe-count" class="status" role="status" aria-live="polite"></p>
         <ul id="recipes" class="recipes"></ul>
 
         <p class="disclaimer">
           Curse Level is a playful guide based on standard daily values, not medical or dietary
-          advice.
+          advice. Dietary filters describe the recipes (for example "no meat" or "lower in sugar");
+          they are a choice, not advice.
         </p>
       </section>
     </main>

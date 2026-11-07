@@ -44,6 +44,13 @@ export interface MobileNetFoodAdapterOptions {
   defaultMinConfidence?: number;
   /** How many top predictions to read before filtering. Default 10. */
   topK?: number;
+  /**
+   * Run one throwaway classification at load() time to prime the backend. Helps
+   * the browser's WebGL backend (lazy shader compilation on first run); does not
+   * help the Node CPU backend, so the default is false. The web app passes true.
+   * A warm-up failure never breaks load().
+   */
+  warmUp?: boolean;
 }
 
 /**
@@ -58,17 +65,38 @@ export class MobileNetFoodAdapter implements ModelAdapter {
   private readonly decodeImage: ImageDecoder;
   private readonly allowed: ReadonlySet<string>;
   private readonly topK: number;
+  private readonly warmUp: boolean;
 
   constructor(options: MobileNetFoodAdapterOptions) {
     this.decodeImage = options.decodeImage;
     this.allowed = new Set(options.allowedLabels.map((l) => l.trim().toLowerCase()));
     this.defaultMinConfidence = options.defaultMinConfidence ?? 0.1;
     this.topK = options.topK ?? 10;
+    this.warmUp = options.warmUp ?? false;
   }
 
   async load(): Promise<void> {
     await tf.ready();
     this.model = await mobilenet.load({ version: 2, alpha: 1.0 });
+    if (this.warmUp) {
+      await this.warmUpOnce();
+    }
+  }
+
+  /**
+   * Primes the backend with one classification on a small blank image. Any error
+   * is swallowed and logged to stderr: warm-up is an optimization, not correctness.
+   */
+  private async warmUpOnce(): Promise<void> {
+    if (!this.model) return;
+    const dummy = tf.zeros([32, 32, 3], 'int32') as tf.Tensor3D;
+    try {
+      await this.model.classify(dummy, this.topK);
+    } catch (error) {
+      console.error(`[mobilenet-food] warm-up skipped: ${(error as Error).message}`);
+    } finally {
+      dummy.dispose();
+    }
   }
 
   async infer(image: DetectorImageInput): Promise<Detection[]> {

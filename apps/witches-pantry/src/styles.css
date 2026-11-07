@@ -414,3 +414,35 @@ main {
   font-size: 0.85rem;
   font-style: italic;
 }
+
+/* --- Dietary filters (user choice, not advice) --- */
+.diet-filters {
+  border: 1px solid #3a3357;
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem 0.8rem;
+  margin: 0 0 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+.diet-filters legend {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 0 0.4rem;
+}
+.diet-filters label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+.diet-filters .desc {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.filter-desc {
+  color: var(--muted);
+  font-style: italic;
+  min-height: 1.2em;
+  margin: 0 0 0.5rem;
+}

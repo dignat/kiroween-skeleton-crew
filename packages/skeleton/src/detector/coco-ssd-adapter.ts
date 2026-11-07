@@ -28,6 +28,15 @@ export interface CocoSsdAdapterOptions {
   defaultMinConfidence?: number;
   /** Most boxes the model returns per image. Default 20. */
   maxBoxes?: number;
+  /**
+   * Run one throwaway inference at load() time to prime the backend. This helps
+   * the browser's WebGL backend, which compiles shaders lazily on the first run,
+   * so the first user-facing detect() does not stall. It does NOT help the Node
+   * pure-JS CPU backend (measured: no per-call speedup, it only moves work into
+   * load()), so the default is false. The web app should pass true; Node callers
+   * leave it off. A warm-up failure never breaks load().
+   */
+  warmUp?: boolean;
 }
 
 /**
@@ -40,16 +49,38 @@ export class CocoSsdAdapter implements ModelAdapter {
   private model: cocoSsd.ObjectDetection | undefined;
   private readonly decodeImage: ImageDecoder;
   private readonly maxBoxes: number;
+  private readonly warmUp: boolean;
 
   constructor(options: CocoSsdAdapterOptions) {
     this.decodeImage = options.decodeImage;
     this.defaultMinConfidence = options.defaultMinConfidence ?? 0.5;
     this.maxBoxes = options.maxBoxes ?? 20;
+    this.warmUp = options.warmUp ?? false;
   }
 
   async load(): Promise<void> {
     await tf.ready();
     this.model = await cocoSsd.load();
+    if (this.warmUp) {
+      await this.warmUpOnce();
+    }
+  }
+
+  /**
+   * Primes the backend with one inference on a small blank image. Any error is
+   * swallowed and logged to stderr: warm-up is an optimization, not correctness,
+   * and must never stop the model from being usable.
+   */
+  private async warmUpOnce(): Promise<void> {
+    if (!this.model) return;
+    const dummy = tf.zeros([32, 32, 3], 'int32') as tf.Tensor3D;
+    try {
+      await this.model.detect(dummy, this.maxBoxes, 0);
+    } catch (error) {
+      console.error(`[coco-ssd] warm-up skipped: ${(error as Error).message}`);
+    } finally {
+      dummy.dispose();
+    }
   }
 
   async infer(image: DetectorImageInput): Promise<Detection[]> {

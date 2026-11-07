@@ -19,6 +19,14 @@ export {
   CURSE_WEIGHTS,
 } from './nutrition-math.js';
 export {
+  isVegetarian,
+  passesFilter,
+  applyFilters,
+  describeFilters,
+  FILTER_INFO,
+  FILTER_THRESHOLDS,
+} from './dietary-filters.js';
+export {
   recipeSchema,
   recipeDatasetSchema,
   recipeIngredientSchema,
@@ -32,4 +40,5 @@ export type {
   NutritionTable,
   Purity,
   SuggestOptions,
+  DietaryFilter,
 } from './types.js';

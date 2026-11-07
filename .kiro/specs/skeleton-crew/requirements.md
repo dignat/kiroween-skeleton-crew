@@ -252,3 +252,19 @@ Each application supplies only configuration, app-specific tools, and a Kiro cus
 11. THE `suggest_recipes` Tool SHALL return each recipe's per-serving nutrition, Curse_Level, and Potion_Purity, and SHALL accept an optional `sortBy` value of `match` or `purity`, so that the App_Agent can give advice based on them.
 12. THE Curse_Level and Potion_Purity SHALL NOT use weight-loss, body-shape, or calorie-restriction language in the UI, tips, or App_Agent prompt.
 13. THE dataset SHALL pass an automated check that each ingredient's calories are consistent with its protein, carbohydrate, and fat values within a stated tolerance.
+
+
+### Requirement 15: Dietary preference filters (stretch)
+
+**User Story:** As a user with a dietary preference, I want to narrow the suggested potions by objective properties of the recipes, so that I only see ones that fit my choice — without the app giving health or medical advice.
+
+**Priority:** stretch. Built after the core Witch's Pantry flow and the nutrition feature (Requirement 14), reusing the same per-serving nutrition and recipe data.
+
+#### Acceptance Criteria
+
+1. THE Witch's Pantry SHALL offer dietary preference filters that narrow the suggested recipe list: vegetarian, lower added sugar, lower sodium, higher fibre, higher protein, and lighter (fewer calories per serving).
+2. EACH filter SHALL be an objective property of the recipe, computed from its ingredient names and its per-serving nutrition, with documented numeric thresholds that are filtering cut-offs, not nutrition targets.
+3. WHEN more than one filter is selected, THE Application SHALL return only recipes that satisfy every selected filter (logical AND).
+4. THE filters SHALL be applied by the same `suggestRecipes` logic shared by the web UI and the `suggest_recipes` Tool, and THE Tool SHALL accept an optional `filters` list so the App_Agent can use them.
+5. THE web UI SHALL present the filters as keyboard- and screen-reader-accessible controls, and SHALL show a neutral line describing what the active filters show (for example "Showing potions with no meat").
+6. THE filters, their labels, their descriptions, and the App_Agent wording SHALL NOT use medical, health-condition, weight-loss, body-shape, or calorie-restriction language. A filter describes the recipe, never a person or a health goal, and the UI SHALL state that the filters are a choice, not advice.

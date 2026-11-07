@@ -3,6 +3,7 @@
 // on the nutrition work (design.md). Passing a nutritionTable enriches each match
 // and enables the 'purity' sort (Phase 6, task 25.3).
 
+import { applyFilters } from './dietary-filters.js';
 import { normalizeIngredient } from './ingredient-map.js';
 import { curseLevel, nutritionPerServing, potionPurity } from './nutrition-math.js';
 import type { Recipe, RecipeMatch, SuggestOptions } from './types.js';
@@ -67,15 +68,21 @@ export function suggestRecipes(
     }
   }
 
+  // Apply dietary preference filters (AND) before sorting. A filter describes
+  // the recipe, it is not advice. Empty/undefined filters leave the list as-is.
+  const filtered = options.filters && options.filters.length > 0
+    ? applyFilters(matches, options.filters)
+    : matches;
+
   // Stable sort by matched count descending. Array.prototype.sort is stable in
   // modern engines, so equal counts keep their dataset order.
-  matches.sort((a, b) => b.matched.length - a.matched.length);
+  filtered.sort((a, b) => b.matched.length - a.matched.length);
 
   // 'purity' sort: lowest Curse Level first (purest). Only meaningful when a
   // nutrition table was supplied; without curseLevel it falls back to match order.
   if (options.sortBy === 'purity') {
-    matches.sort((a, b) => (a.curseLevel ?? Infinity) - (b.curseLevel ?? Infinity));
+    filtered.sort((a, b) => (a.curseLevel ?? Infinity) - (b.curseLevel ?? Infinity));
   }
 
-  return matches;
+  return filtered;
 }

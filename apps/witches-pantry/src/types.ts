@@ -57,6 +57,24 @@ export interface RecipeMatch {
   purity?: Purity;
 }
 
+/**
+ * Dietary preference filters (a user choice, not advice). Each is an objective
+ * property of a recipe computed from its ingredients and per-serving nutrition:
+ * - 'vegetarian'    no meat, poultry or fish ingredients
+ * - 'lowerSugar'    added sugar per serving at or below a threshold
+ * - 'lowerSodium'   sodium per serving at or below a threshold
+ * - 'higherFibre'   fibre per serving at or above a threshold
+ * - 'higherProtein' protein per serving at or above a threshold
+ * - 'lighter'       calories per serving at or below a threshold
+ */
+export type DietaryFilter =
+  | 'vegetarian'
+  | 'lowerSugar'
+  | 'lowerSodium'
+  | 'higherFibre'
+  | 'higherProtein'
+  | 'lighter';
+
 export interface SuggestOptions {
   /** 'match' (default) sorts by matched count; 'purity' sorts by Curse Level ascending. */
   sortBy?: 'match' | 'purity';
@@ -66,4 +84,10 @@ export interface SuggestOptions {
    * and the core name-only matching runs unchanged.
    */
   nutritionTable?: NutritionTable | undefined;
+  /**
+   * Dietary preference filters applied before sorting (all must pass, AND). They
+   * describe the recipes, they are not dietary advice. 'vegetarian' works from
+   * ingredient names alone; the nutrition-based filters need `nutritionTable`.
+   */
+  filters?: readonly DietaryFilter[] | undefined;
 }

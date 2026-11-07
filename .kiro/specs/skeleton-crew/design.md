@@ -28,7 +28,7 @@ playground/
 │   │   └── usage-log-on-task.json
 │   ├── steering/
 │   │   ├── project-structure.md
-│   │   ├── adding-a-tool.md         # fileMatch: packages/skeleton/src/mcp/tools/**
+│   │   ├── adding-a-tool.md         # fileMatch: apps/*/src/mcp-server.ts + the MCP kit
 │   │   └── adding-an-agent.md
 │   └── specs/skeleton-crew/
 │       ├── requirements.md
@@ -256,6 +256,15 @@ Data validation (runs as a test, Requirement 14.13): for every ingredient, the A
 
 MCP: `suggest_recipes` returns each recipe's nutrition, `curseLevel`, and `purity`, and accepts `sortBy`. No extra tool is needed. The Pantry App_Agent prompt tells the agent to use these fields for advice and to follow the wording rule.
 
+### Dietary preference filters (stretch, Requirement 15)
+
+A second small stretch on top of the nutrition work, added at the user's request but reshaped to avoid any medical/health-advice framing. The user originally asked for health-condition and weight-loss guidance (diabetes, losing weight, refeeding after fasting); that was declined because it is medical/dietary advice the app must not give, and reframed as **objective preference filters that describe the recipe, never the person**.
+
+- `dietary-filters.ts` holds six pure predicates over a `RecipeMatch`: `vegetarian` (no meat/poultry/fish, by ingredient name), and five nutrition-threshold filters (`lowerSugar`, `lowerSodium`, `higherFibre`, `higherProtein`, `lighter`). Thresholds are documented constants in `FILTER_THRESHOLDS` — filtering cut-offs, not health targets.
+- `suggestRecipes` gains an optional `filters` list, applied with AND before sorting, so it composes with the `match`/`purity` sort. Nutrition-based filters pass through (do not exclude) when no nutrition table was supplied, so the core name-only path is unaffected.
+- Shared across surfaces like the rest: the web UI shows an accessible checkbox group plus a neutral `describeFilters` line ("Showing potions with no meat"), and the `suggest_recipes` Tool accepts the same `filters` array.
+- Guardrails: the disclaimer states the filters are a choice, not advice; a test asserts `describeFilters` output contains none of weight/diet/diabetes/lose/calorie-restriction wording. Property tests cover that filtering only removes (never adds) recipes, that every returned recipe passes every selected filter, and that adding a filter never grows the result.
+
 ## Data models
 
 - **Detection** — see above.
@@ -397,6 +406,7 @@ Decisions made while building the skeleton that differ from, or add to, the sket
 
 - **Entry points.** The package has two entry points in `exports`: `@skeleton-crew/core` (browser-safe: detector, adapters, types) and `@skeleton-crew/core/node` (file loading and the MCP kit). The folder layout is `src/detector/` and `src/node/` and `src/node/mcp/`, not the `detector-browser/` and `mcp/` folders drawn in the layout at the top. A test (`entry-points.test.ts`) bundles the browser entry for the browser with esbuild and fails if it reaches a Node module. A second test checks that the same bundling of the Node entry does fail, so the check can actually catch a mistake.
 - **`ModelAdapter` shape.** `load()` and `infer(image)`, plus `name` and `defaultMinConfidence`. Adapters return raw detections and the `Detector` applies the confidence threshold, so the filter lives in one place. The `Detector` caches the load promise, so overlapping calls load the model once, and it forgets a failed load so the next call retries.
+- **Warm-up inference (measured, scoped to the browser).** Both Node adapters take an optional `warmUp` flag that runs one throwaway inference on a 32×32 blank tensor at the end of `load()` (errors swallowed, logged to stderr; warm-up is never load-breaking). The intent was to hide first-call kernel-compilation latency. Measured on the real COCO model: on the Node pure-JS CPU backend it gave **no per-call speedup** — first and second inference were both ~6.5 s with or without it; warm-up only shifted ~4.4 s of work into `load()`. The CPU backend has no lazy shader compilation to hide, so warm-up does not help there. It does help the browser's **WebGL** backend, which compiles shaders lazily on the first run. Decision: `warmUp` defaults to **false** (so the MCP servers and CLI do not pay a slower startup for nothing), and the web app opts in with `warmUp: true`. This corrected an earlier assumption that the Spike B 6.4→4.8 s first-image gap was cold-start that warm-up would remove; on the CPU backend that gap is just run-to-run noise.
 - **Image decoding is injected.** Adapters take an `ImageDecoder` function instead of deciding how to read pixels. Node uses `createNodeImageDecoder`. The web app will supply a canvas-based decoder.
 - **Image loading safety.** The Node decoder judges the format from the file's first bytes, not its name, and also requires a `.jpg`, `.jpeg` or `.png` extension. Paths are resolved with `realpath` and must stay inside the allowed folder, which also stops symlink escapes. Caps: 25 MB per file, about 25 MB of base64, 50 megapixels (PNG size is read from the header before decoding).
 - **Tool names are snake_case, enforced.** `registerTool` rejects any other name. Reason: the SDK keeps tools in a plain object, so a property-based test found that a tool named `valueOf` or `toString` is reported as "already registered" on its first use. `constructor` is reserved for the same reason.
