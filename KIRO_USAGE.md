@@ -21,7 +21,13 @@ Running log for the Kiroween (Skeleton Crew) write-up. Add short, concrete notes
 
 ## Agent hooks
 
-- 
+The project ships three agent hooks in `.kiro/hooks/`, created with Kiro's hook tooling (not hand-written):
+
+- **test-on-save** (`PostFileSave` on `*.ts`) — runs the test suite whenever a TypeScript file is saved, so a change that breaks a property test is caught immediately rather than at the next manual run.
+- **usage-log-on-task** (`PostTaskExec`) — appends a short entry to this log when a spec task completes, which is part of why this file stayed current through the build instead of being written from memory at the end.
+- **tool-registration-check** (`PostFileCreate` on `apps/*/src/*.ts`) — when a new source file is created, an agent-action hook checks whether it backs a new MCP tool and, if so, that the tool is registered with a snake_case name + Zod schema, documented, and logs only to stderr; if the file is a test or plain module it does nothing.
+
+**The tool-registration-check hook earned its place during the stretch work.** As the dietary-filter and food-relevance files were created this session, the hook fired on each one: it correctly treated `dietary-filters.ts` / its test as logic (no new tool to wire) and, when `food-relevance.ts` was created, flagged that it backed a new tool — which is what prompted wiring `check_image` into `mcp-server.ts` with a Zod schema and `jsonResult`. A hook written in Phase 7 doing real work in a later phase, with no prompting.
 
 ## Spec-driven development
 
@@ -82,8 +88,10 @@ Running log for the Kiroween (Skeleton Crew) write-up. Add short, concrete notes
 
 - **A property test found a real bug in how the kit meets the SDK.** The "registering any name twice is rejected" property used arbitrary strings, and fast-check shrank a failure to the name `valueOf`: the SDK keeps tools in a plain object, so `valueOf`, `toString` and `constructor` count as "already registered" on first use. The fix was to enforce snake_case tool names, which the steering file already required, with a clear error, and to keep `constructor` reserved.
 - **Mutation checks showed the tests can fail.** For the confidence filter, the label counter, the folder-containment check and the stdout redirect, a deliberate bug was introduced, the tests were run to see them fail, and the code was restored. That caught nothing wrong, but it confirmed that each property is not vacuous.
-- Properties written so far: confidence filter keeps only detections at or above the threshold, label counts sum to the number of detections (both unit-level and through a real MCP client), duplicate tool names are always rejected, input that fails a schema never reaches the handler, and any bytes that are not JPEG or PNG are rejected with `UnsupportedImageError`.
-- 
+- Properties written so far (160 tests total across skeleton + both apps):
+  - **Skeleton:** confidence filter keeps only detections at or above the threshold; label counts sum to the number of detections (unit-level and through a real MCP client); duplicate tool names are always rejected; input that fails a schema never reaches the handler; non-JPEG/PNG bytes are rejected with `UnsupportedImageError`.
+  - **Poltergeist Detector:** every detection is reported in exactly one category; swapping before/after swaps appeared and vanished; comparing a scene with itself reports no change.
+  - **Witch's Pantry:** matched ∪ missing equals a recipe's ingredients with no overlap; adding an ingredient never lowers a recipe's matched count; Curse Level stays within 0–100 and is monotonic in each nutrient; per-serving nutrition is invariant under scaling amounts and servings together; "purest first" never lets Curse Levels decrease; a dietary filter only ever removes recipes and every result passes every selected filter; `check_image` reports food exactly when an ingredient is recognized.
 
 ## Kiro powers
 

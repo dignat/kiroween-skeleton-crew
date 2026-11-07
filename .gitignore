@@ -21,3 +21,7 @@ yarn.lock
 
 # IMPORTANT: never ignore .kiro/ or any of its sub-folders.
 # The hackathon requires it to be committed; ignoring it can disqualify the submission.
+
+# Local working drafts (Devpost text, blog/social posts, planning notes).
+# Not part of the submission repo — pasted into Devpost / published on their platforms.
+docs/
