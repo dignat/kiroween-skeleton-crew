@@ -16,9 +16,27 @@
     <header class="site-header">
       <h1>🔮 The Witch's Pantry</h1>
       <p class="tagline">Show me what you have, and I'll conjure a potion to brew.</p>
+      <nav class="view-nav" aria-label="Choose a view">
+        <button id="nav-pantry" type="button" class="view-nav-button is-active" aria-pressed="true">
+          Pantry
+        </button>
+        <button id="nav-calculator" type="button" class="view-nav-button" aria-pressed="false">
+          Cauldron Calculator
+        </button>
+        <button
+          id="clear-all"
+          type="button"
+          class="clear-all"
+          title="Clear the image and all ingredients"
+          hidden
+        >
+          ↺ Start over
+        </button>
+      </nav>
     </header>
 
     <main id="main">
+      <div id="pantry-view">
       <!-- Step 1: bring an image -->
       <section class="panel" aria-labelledby="capture-heading">
         <h2 id="capture-heading">1. Peer into the cauldron</h2>
@@ -109,6 +127,20 @@
           they are a choice, not advice.
         </p>
       </section>
+      </div>
+
+      <!-- The Cauldron Calculator: a standalone view, hidden until chosen -->
+      <div id="calculator-view" hidden>
+        <section class="panel" aria-labelledby="calculator-heading">
+          <h2 id="calculator-heading">🧮 The Cauldron Calculator</h2>
+          <p class="hint">
+            Add ingredients and amounts to tally the nutrition of a brew. Set servings to see
+            per-serving numbers, and enter your own daily targets to see each total as a share of
+            them.
+          </p>
+          <div id="calculator" class="calculator"></div>
+        </section>
+      </div>
     </main>
 
     <footer class="site-footer">

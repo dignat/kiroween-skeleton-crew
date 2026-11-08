@@ -15,6 +15,7 @@ import { suggestRecipes } from './suggest-recipes.js';
 import type { DietaryFilter } from './types.js';
 
 import { drawDetections, drawImageToCanvas } from './ui/draw-overlay.js';
+import { renderCalculator, type CalculatorState } from './ui/render-calculator.js';
 import { renderChips, renderQuickAdd } from './ui/render-chips.js';
 import { renderRecipes } from './ui/render-recipes.js';
 
@@ -49,6 +50,7 @@ const preview = $<HTMLElement>('preview');
 const overlay = $<HTMLCanvasElement>('overlay');
 const detectionSummary = $<HTMLElement>('detection-summary');
 const chipsEl = $<HTMLUListElement>('chips');
+const clearAllButton = $<HTMLButtonElement>('clear-all');
 const addForm = $<HTMLFormElement>('add-form');
 const addInput = $<HTMLInputElement>('add-input');
 const quickAddEl = $<HTMLUListElement>('quick-add');
@@ -86,6 +88,12 @@ const ingredients: string[] = loadSavedIngredients();
 let sortBy: 'match' | 'purity' = 'match';
 let filters: DietaryFilter[] = [];
 
+// Names added by the most recent image detection. A new image replaces these
+// (its ingredients belong to it), while ingredients the user added by hand or
+// via quick-add are kept. Restored ingredients from a previous session start
+// as "not from this image", so the first upload clears none of them.
+let detectedIngredients: string[] = [];
+
 // --- Detector (lazy; the model loads on first use) ---
 const decodeImage = createBrowserImageDecoder();
 const detector = new Detector(
@@ -107,7 +115,15 @@ function refresh(): void {
   filterDesc.textContent = describeFilters(filters);
   // Persist on every change (vibe-coded, task 31).
   saveIngredients(ingredients);
+  // Offer "Start over" only when there is something to clear.
+  clearAllButton.hidden = ingredients.length === 0 && preview.hidden;
+  // Keep a visible, pantry-synced calculator in step with pantry edits.
+  onPantryChanged();
 }
+
+// Assigned by the calculator wiring below; a no-op until then. Lets the pantry
+// refresh re-render the calculator when it is showing in synced mode.
+let onPantryChanged: () => void = () => {};
 
 function addIngredient(raw: string): void {
   const name = normalizeIngredient(raw) ?? raw.trim().toLowerCase();
@@ -120,8 +136,30 @@ function removeIngredient(name: string): void {
   const i = ingredients.indexOf(name);
   if (i >= 0) {
     ingredients.splice(i, 1);
+    // Stop tracking it as a detected name, so a later image doesn't try to
+    // re-clear something the user already removed.
+    const d = detectedIngredients.indexOf(name);
+    if (d >= 0) detectedIngredients.splice(d, 1);
     refresh();
   }
+}
+
+// Fresh start: clear the image preview, every ingredient (detected and manual),
+// the detection tracking, and the saved list. The separate calculator list is a
+// deliberate scratchpad, so it is left alone; the synced calculator empties with
+// the pantry.
+function clearAll(): void {
+  ingredients.length = 0;
+  detectedIngredients = [];
+  preview.hidden = true;
+  const ctx = overlay.getContext('2d');
+  if (ctx) ctx.clearRect(0, 0, overlay.width, overlay.height);
+  detectionSummary.textContent = '';
+  setStatus('');
+  setError(null);
+  // Let the same file be chosen again right after clearing.
+  fileInput.value = '';
+  refresh();
 }
 
 function setError(message: string | null): void {
@@ -185,6 +223,17 @@ async function handleFile(file: File): Promise<void> {
       setStatus(relevance.message);
       detectionSummary.textContent = relevance.message;
     } else {
+      // A new image replaces the previous image's detections. Remove only the
+      // names the last detection added (and that the user hasn't since made
+      // their own by, say, re-adding) — manual and quick-add ingredients stay.
+      const newlyDetected = new Set(relevance.ingredients);
+      for (const name of detectedIngredients) {
+        if (!newlyDetected.has(name)) {
+          const i = ingredients.indexOf(name);
+          if (i >= 0) ingredients.splice(i, 1);
+        }
+      }
+
       let added = 0;
       for (const name of relevance.ingredients) {
         if (!ingredients.includes(name)) {
@@ -192,6 +241,8 @@ async function handleFile(file: File): Promise<void> {
           added += 1;
         }
       }
+      detectedIngredients = [...relevance.ingredients];
+
       setStatus(relevance.message);
       detectionSummary.textContent = `Detected ${relevance.ingredients.join(', ')}. Added ${added} to your ingredients.`;
       refresh();
@@ -243,6 +294,8 @@ addForm.addEventListener('submit', (e) => {
   addInput.focus();
 });
 
+clearAllButton.addEventListener('click', () => clearAll());
+
 // Sort toggle: "Best match" vs "Purest first".
 for (const radio of sortRadios) {
   radio.addEventListener('change', () => {
@@ -262,6 +315,50 @@ for (const box of filterBoxes) {
     refresh();
   });
 }
+
+// --- The Cauldron Calculator: a standalone view (nutrition-calculator feature) ---
+const pantryView = $<HTMLDivElement>('pantry-view');
+const calculatorView = $<HTMLDivElement>('calculator-view');
+const navPantry = $<HTMLButtonElement>('nav-pantry');
+const navCalculator = $<HTMLButtonElement>('nav-calculator');
+const calculatorEl = $<HTMLDivElement>('calculator');
+
+// The calculator has two modes: 'synced' mirrors the pantry ingredient list
+// (names read-only, grams editable), 'separate' is a free scratchpad. It opens
+// synced so it starts from what you already have.
+const calculatorState: CalculatorState = {
+  mode: 'synced',
+  rows: [{ name: '', grams: 100 }],
+  servings: 1,
+  targets: {},
+  gramsByName: {},
+};
+
+function refreshCalculator(): void {
+  renderCalculator(calculatorEl, calculatorState, ingredients, nutritionTable, refreshCalculator);
+}
+
+// When the pantry changes, re-render the calculator if it is showing and in
+// synced mode (so its rows track the pantry live). No-op otherwise.
+onPantryChanged = () => {
+  if (!calculatorView.hidden && calculatorState.mode === 'synced') {
+    refreshCalculator();
+  }
+};
+
+function showView(view: 'pantry' | 'calculator'): void {
+  const isPantry = view === 'pantry';
+  pantryView.hidden = !isPantry;
+  calculatorView.hidden = isPantry;
+  navPantry.classList.toggle('is-active', isPantry);
+  navCalculator.classList.toggle('is-active', !isPantry);
+  navPantry.setAttribute('aria-pressed', String(isPantry));
+  navCalculator.setAttribute('aria-pressed', String(!isPantry));
+  if (!isPantry) refreshCalculator();
+}
+
+navPantry.addEventListener('click', () => showView('pantry'));
+navCalculator.addEventListener('click', () => showView('calculator'));
 
 // --- Initial render ---
 refresh();

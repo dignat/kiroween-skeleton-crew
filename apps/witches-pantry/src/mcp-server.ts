@@ -16,6 +16,7 @@ import {
 import { assessFoodRelevance } from './food-relevance.js';
 import { normalizeIngredients } from './ingredient-map.js';
 import { createFoodDetector } from './node-detector.js';
+import { calculateTotals, percentOfTargets } from './nutrition-calculator.js';
 import { nutritionTable } from './nutrition.js';
 import { recipes } from './recipes.js';
 import { suggestRecipes } from './suggest-recipes.js';
@@ -46,6 +47,47 @@ const checkImageInput = z.object({
     .string()
     .min(1)
     .describe('Path to a JPEG or PNG image, resolved inside the allowed images folder.'),
+});
+
+// The user's own targets. Every field is optional; only the ones given are
+// compared. We never supply recommended or default values here — these are the
+// numbers the caller chose. This is a choice, not dietary advice.
+const userTargetsInput = z
+  .object({
+    kcal: z.number().positive().optional(),
+    protein: z.number().positive().optional(),
+    carbs: z.number().positive().optional(),
+    fat: z.number().positive().optional(),
+    satFat: z.number().positive().optional(),
+    fibre: z.number().positive().optional(),
+    sodiumMg: z.number().positive().optional(),
+    addedSugar: z.number().positive().optional(),
+  })
+  .describe(
+    'Optional daily targets you set for yourself (per nutrient). Only the fields you include are ' +
+      'compared, as a plain percentage of your own number. No defaults or recommended values are supplied.',
+  );
+
+const calculateNutritionInput = z.object({
+  ingredients: z
+    .array(
+      z.object({
+        name: z.string().min(1).describe('Ingredient name, for example "onion".'),
+        grams: z.number().nonnegative().describe('Amount of this ingredient in grams.'),
+      }),
+    )
+    .min(1)
+    .describe(
+      'Ingredients and their amounts in grams. Detected, recipe and hand-entered ingredients ' +
+        'all use the same shape.',
+    ),
+  servings: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe('How many servings the amounts make. Defaults to 1. The per-serving values divide the total by this.'),
+  targets: userTargetsInput.optional(),
 });
 
 /** Builds the server: built-in tools plus this app's tools, sharing one detector. */
@@ -117,11 +159,56 @@ export function createServer() {
     },
   });
 
+  const calculateNutritionTool = defineTool({
+    name: 'calculate_nutrition',
+    description:
+      'Add up the nutrition of a list of ingredients (the Cauldron Calculator). Returns the total ' +
+      'and per-serving calories and macros (protein, carbs, fat, saturated fat, fibre, sodium, added ' +
+      'sugar), plus which ingredient names had no nutrition data. If you pass your own daily targets, ' +
+      'it also returns each total and per-serving amount as a percentage of the target you gave. ' +
+      'Targets are your own numbers; this reports plain percentages, not dietary or medical advice.',
+    inputSchema: calculateNutritionInput,
+    handler: async (input) => {
+      const servings = input.servings ?? 1;
+      const totals = calculateTotals(input.ingredients, nutritionTable, servings);
+
+      const round1 = (x: number): number => Math.round(x * 10) / 10;
+      const shape = (n: typeof totals.total) => ({
+        kcal: Math.round(n.kcal),
+        protein: round1(n.protein),
+        carbs: round1(n.carbs),
+        fat: round1(n.fat),
+        satFat: round1(n.satFat),
+        fibre: round1(n.fibre),
+        sodiumMg: Math.round(n.sodiumMg),
+        addedSugar: round1(n.addedSugar),
+      });
+
+      const targets = input.targets;
+      const hasTargets = targets !== undefined && Object.keys(targets).length > 0;
+
+      return jsonResult({
+        servings: totals.servings,
+        total: shape(totals.total),
+        perServing: shape(totals.perServing),
+        counted: totals.counted,
+        missing: totals.missing,
+        percentOfTargets: hasTargets
+          ? {
+              total: percentOfTargets(totals.total, targets),
+              perServing: percentOfTargets(totals.perServing, targets),
+            }
+          : undefined,
+        note: 'Percentages are of the targets you provided. This is a calculation, not dietary or medical advice.',
+      });
+    },
+  });
+
   return createAppServer({
     name: SERVER_NAME,
     version: SERVER_VERSION,
     detector,
-    tools: [suggestRecipesTool, checkImageTool],
+    tools: [suggestRecipesTool, checkImageTool, calculateNutritionTool],
   });
 }
 
