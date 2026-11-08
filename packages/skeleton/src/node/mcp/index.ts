@@ -10,3 +10,5 @@ export { errorResult, jsonResult, textResult } from './results.js';
 export type { ToolResult } from './results.js';
 export { redirectConsoleToStderr, serveOverStdio } from './stdio.js';
 export type { StdioServerHandle } from './stdio.js';
+export { createAppServer, serveApp, defineTool } from './serve-app.js';
+export type { AppServerOptions, AnyToolDefinition } from './serve-app.js';

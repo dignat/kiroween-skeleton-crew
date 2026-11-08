@@ -304,10 +304,10 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
   - [x] 36.1 Finish `KIRO_USAGE.md` with concrete examples for every rubric item and use it for the Devpost write-up
     - `KIRO_USAGE.md` completed — every rubric section filled (Agent hooks section written, property-test invariants listed, no empty placeholders). Devpost write-up drafted and saved to `docs/devpost.md` (Inspiration → Built with).
     - _Requirements: 11.1, 11.2, 11.3, 13.6_
-  - [~]* 36.2 Blog post on a third-party platform, published within the submission period, mentioning "Kiroween Hackathon 2026"
+  - [ ]* 36.2 Blog post on a third-party platform, published within the submission period, mentioning "Kiroween Hackathon 2026"
     - Draft written at `docs/blog-post.md` (spec-pivot, honest-engineering, the Node/PATH bug). PENDING the user: publish it on a third-party platform during the submission window and add the URL to Devpost.
     - _Requirements: 13.8_
-  - [~]* 36.3 Social post that starts with `#KiroweenHackathon26`, written in your own words with a real insight about Kiro
+  - [ ]* 36.3 Social post that starts with `#KiroweenHackathon26`, written in your own words with a real insight about Kiro
     - Four draft options at `docs/social-post.md`, each starting with `#KiroweenHackathon26`. PENDING the user: rewrite one in your own words (authenticity is judged), post it, add the URL to Devpost.
     - _Requirements: 13.9_
 

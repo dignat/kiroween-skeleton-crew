@@ -7,10 +7,10 @@
 // The recipe logic modules it imports are browser-safe and have no DOM use.
 
 import {
-  createSkeletonServer,
+  createAppServer,
+  defineTool,
   jsonResult,
-  registerTool,
-  serveOverStdio,
+  serveApp,
   z,
 } from '@skeleton-crew/core/node';
 import { assessFoodRelevance } from './food-relevance.js';
@@ -48,18 +48,12 @@ const checkImageInput = z.object({
     .describe('Path to a JPEG or PNG image, resolved inside the allowed images folder.'),
 });
 
-/** Builds the server: built-in tools plus suggest_recipes, sharing one detector. */
+/** Builds the server: built-in tools plus this app's tools, sharing one detector. */
 export function createServer() {
   const allowedRoot = process.cwd();
   const detector = createFoodDetector(allowedRoot);
 
-  const server = createSkeletonServer({
-    name: SERVER_NAME,
-    version: SERVER_VERSION,
-    detector,
-  });
-
-  registerTool(server, {
+  const suggestRecipesTool = defineTool({
     name: 'suggest_recipes',
     description:
       'Suggest potion recipes for the ingredients you have. Returns recipes that match at least ' +
@@ -108,7 +102,7 @@ export function createServer() {
     },
   });
 
-  registerTool(server, {
+  const checkImageTool = defineTool({
     name: 'check_image',
     description:
       'Check whether an image looks like food before suggesting recipes. Runs the food detector ' +
@@ -123,11 +117,16 @@ export function createServer() {
     },
   });
 
-  return server;
+  return createAppServer({
+    name: SERVER_NAME,
+    version: SERVER_VERSION,
+    detector,
+    tools: [suggestRecipesTool, checkImageTool],
+  });
 }
 
 // Only serve when invoked directly, not when imported by tests.
 const invokedDirectly = process.argv[1] !== undefined && import.meta.url === `file://${process.argv[1]}`;
 if (invokedDirectly) {
-  serveOverStdio(SERVER_NAME, createServer);
+  serveApp(SERVER_NAME, createServer);
 }
