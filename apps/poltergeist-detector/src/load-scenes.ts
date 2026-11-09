@@ -1,4 +1,4 @@
-import type { Detection, DetectOptions, DetectorInterface, DetectorImageInput } from '@skeleton-crew/core';
+import type { Detection, DetectOptions, Detector, DetectorImageInput } from '@skeleton-crew/core';
 
 /**
  * Scene loader (task 15.6). Runs the Detector on the before and after photos one
@@ -44,7 +44,7 @@ function normalizeBoxes(detections: Detection[], width: number, height: number):
 }
 
 async function detectOne(
-  detector: DetectorInterface,
+  detector: Detector,
   getSize: ImageSizer,
   input: DetectorImageInput,
   which: 'before' | 'after',
@@ -71,7 +71,7 @@ async function detectOne(
  * single cached model is reused rather than loaded twice concurrently.
  */
 export async function loadScenes(
-  detector: DetectorInterface,
+  detector: Detector,
   getSize: ImageSizer,
   beforePath: string,
   afterPath: string,

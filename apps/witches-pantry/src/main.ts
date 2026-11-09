@@ -2,7 +2,7 @@
 // Wires image detection, editable ingredient chips, and recipe suggestions,
 // all running in the browser.
 
-import { Detector, MobileNetFoodAdapter, UnsupportedImageError } from '@skeleton-crew/core';
+import { createDetector, MobileNetFoodAdapter, UnsupportedImageError } from '@skeleton-crew/core';
 import type { DetectorImageInput } from '@skeleton-crew/core';
 import { createBrowserImageDecoder, fileToDetectorInput } from './browser-image-decoder.js';
 import { FOOD_LABELS } from './food-labels.js';
@@ -96,7 +96,7 @@ let detectedIngredients: string[] = [];
 
 // --- Detector (lazy; the model loads on first use) ---
 const decodeImage = createBrowserImageDecoder();
-const detector = new Detector(
+const detector = createDetector(
   // warmUp primes the browser's WebGL backend so the first detection doesn't
   // stall on shader compilation (helps WebGL, not the Node CPU backend).
   new MobileNetFoodAdapter({ decodeImage, allowedLabels: FOOD_LABELS, warmUp: true }),

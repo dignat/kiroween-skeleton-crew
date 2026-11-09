@@ -9,7 +9,7 @@ Apps depend on it as `"@skeleton-crew/core": "workspace:*"` and never edit files
 
 | Part | What it gives you |
 |---|---|
-| Detection core | `Detector`, `Detection`, `ModelAdapter`, `filterByConfidence`, `countByLabel`, `UnsupportedImageError` |
+| Detection core | `createDetector` (returns a `Detector`), `Detection`, `ModelAdapter`, `filterByConfidence`, `countByLabel`, `UnsupportedImageError` |
 | Model adapters | `CocoSsdAdapter` (boxes, 80 classes) and `MobileNetFoodAdapter` (whole-image labels, filtered to an allowlist you pass in) |
 | Node image loading | `createNodeImageDecoder`: JPEG and PNG, only inside an allowed folder, with size caps |
 | MCP server kit | `createSkeletonServer` (comes with `detect_objects` and `count_objects`), `registerTool`, `serveOverStdio` |
@@ -29,11 +29,11 @@ The adapters take an **image decoder** as a parameter, because decoding is the o
 3. **Write the MCP server entry**, `apps/<your-app>/src/mcp-server.ts`:
 
    ```ts
-   import { CocoSsdAdapter, Detector } from '@skeleton-crew/core';
+   import { CocoSsdAdapter, createDetector } from '@skeleton-crew/core';
    import { createNodeImageDecoder, createSkeletonServer, registerTool, serveOverStdio, z } from '@skeleton-crew/core/node';
 
    const decodeImage = createNodeImageDecoder({ allowedRoot: 'samples' });
-   const detector = new Detector(new CocoSsdAdapter({ decodeImage }));
+   const detector = createDetector(new CocoSsdAdapter({ decodeImage }));
 
    serveOverStdio('my-app', () => {
      const server = createSkeletonServer({ name: 'my-app', version: '0.1.0', detector });

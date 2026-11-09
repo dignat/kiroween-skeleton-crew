@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { Detection, DetectorInterface, DetectorImageInput } from '@skeleton-crew/core';
+import type { Detection, Detector, DetectorImageInput } from '@skeleton-crew/core';
 import { loadScenes, SceneLoadError, type ImageSizer } from './load-scenes.js';
 
 /** Fake detector: returns canned pixel-box detections keyed by file path. */
-function fakeDetector(byPath: Record<string, Detection[]>): DetectorInterface {
+function fakeDetector(byPath: Record<string, Detection[]>): Detector {
   return {
     async detect(image: DetectorImageInput): Promise<Detection[]> {
       if (image.kind !== 'filePath') throw new Error('expected filePath');
@@ -54,7 +54,7 @@ describe('loadScenes', () => {
 
   it('runs the before photo before the after photo', async () => {
     const order: string[] = [];
-    const detector: DetectorInterface = {
+    const detector: Detector = {
       async detect(image: DetectorImageInput) {
         if (image.kind === 'filePath') order.push(image.path);
         return [];

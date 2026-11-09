@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Detector } from './detector.js';
+import { createDetector } from './detector.js';
 import type { ModelAdapter } from './model-adapter.js';
 import { UnsupportedImageError } from './types.js';
 import type { Detection, DetectorImageInput } from './types.js';
@@ -24,10 +24,10 @@ function fakeAdapter(raw: Detection[], overrides: Partial<ModelAdapter> = {}) {
   return { adapter, calls };
 }
 
-describe('Detector', () => {
+describe('createDetector', () => {
   it('loads the model once and reuses it across calls (Requirement 2.5)', async () => {
     const { adapter, calls } = fakeAdapter([]);
-    const detector = new Detector(adapter);
+    const detector = createDetector(adapter);
     await detector.detect(image);
     await detector.detect(image);
     await detector.detect(image);
@@ -42,7 +42,7 @@ describe('Detector', () => {
         await new Promise((resolve) => setTimeout(resolve, 20));
       },
     });
-    const detector = new Detector(adapter);
+    const detector = createDetector(adapter);
     await Promise.all([detector.detect(image), detector.detect(image), detector.detect(image)]);
     expect(calls.load).toBe(1);
   });
@@ -52,7 +52,7 @@ describe('Detector', () => {
       { label: 'cat', confidence: 0.9 },
       { label: 'dog', confidence: 0.3 },
     ]);
-    const result = await new Detector(adapter).detect(image);
+    const result = await createDetector(adapter).detect(image);
     expect(result.map((d) => d.label)).toEqual(['cat']);
   });
 
@@ -61,7 +61,7 @@ describe('Detector', () => {
       { label: 'cat', confidence: 0.9 },
       { label: 'dog', confidence: 0.3 },
     ]);
-    const result = await new Detector(adapter).detect(image, { minConfidence: 0.1 });
+    const result = await createDetector(adapter).detect(image, { minConfidence: 0.1 });
     expect(result.map((d) => d.label)).toEqual(['cat', 'dog']);
   });
 
@@ -71,7 +71,7 @@ describe('Detector', () => {
       { label: 'banana', confidence: 0.9, box },
       { label: 'tray', confidence: 0.8 },
     ]);
-    const [withBox, withoutBox] = await new Detector(adapter).detect(image);
+    const [withBox, withoutBox] = await createDetector(adapter).detect(image);
     expect(withBox?.box).toEqual(box);
     expect(withoutBox).not.toHaveProperty('box');
   });
@@ -82,7 +82,7 @@ describe('Detector', () => {
         throw new UnsupportedImageError('only JPEG and PNG are supported');
       },
     });
-    const detector = new Detector(adapter);
+    const detector = createDetector(adapter);
     await expect(detector.detect(image)).rejects.toBeInstanceOf(UnsupportedImageError);
     // The detector is still usable afterwards.
     await expect(detector.detect(image)).rejects.toThrow('only JPEG and PNG');
@@ -96,7 +96,7 @@ describe('Detector', () => {
         if (attempts === 1) throw new Error('network down');
       },
     });
-    const detector = new Detector(adapter);
+    const detector = createDetector(adapter);
     await expect(detector.detect(image)).rejects.toThrow('network down');
     await expect(detector.detect(image)).resolves.toHaveLength(1);
     expect(attempts).toBe(2);

@@ -3,18 +3,18 @@
 
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
-import { CocoSsdAdapter, Detector, type DetectorImageInput } from '@skeleton-crew/core';
+import { CocoSsdAdapter, createDetector, type Detector, type DetectorImageInput } from '@skeleton-crew/core';
 import { createNodeImageDecoder } from '@skeleton-crew/core/node';
 import type { ImageSizer } from './load-scenes.js';
 
 /**
  * Creates a Detector backed by COCO-SSD, reading images only from `allowedRoot`.
- * The model loads once on first detect() and is reused (handled by Detector).
+ * The model loads once on first detect() and is reused (handled by createDetector).
  */
 export function createCocoDetector(allowedRoot: string): Detector {
   const decodeImage = createNodeImageDecoder({ allowedRoot });
   const adapter = new CocoSsdAdapter({ decodeImage });
-  return new Detector(adapter);
+  return createDetector(adapter);
 }
 
 /**
