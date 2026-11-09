@@ -1,4 +1,5 @@
 import type { Detection, DetectOptions, Detector, DetectorImageInput } from '@skeleton-crew/core';
+import { SceneLoadError } from './errors/index.js';
 
 /**
  * Scene loader (task 15.6). Runs the Detector on the before and after photos one
@@ -11,19 +12,6 @@ import type { Detection, DetectOptions, Detector, DetectorImageInput } from '@sk
 
 /** Minimal shape the loader needs to normalize boxes: the image's pixel size. */
 export type ImageSizer = (input: DetectorImageInput) => Promise<{ width: number; height: number }>;
-
-export class SceneLoadError extends Error {
-  constructor(
-    message: string,
-    /** Which photo failed, so the caller can report it. */
-    readonly which: 'before' | 'after',
-    readonly path: string,
-    readonly cause?: unknown,
-  ) {
-    super(message);
-    this.name = 'SceneLoadError';
-  }
-}
 
 /** Divides a detection's pixel box by the image size to get 0..1 coordinates. */
 function normalizeBoxes(detections: Detection[], width: number, height: number): Detection[] {

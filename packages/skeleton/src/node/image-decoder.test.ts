@@ -5,8 +5,9 @@ import fc from 'fast-check';
 import jpeg from 'jpeg-js';
 import { PNG } from 'pngjs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { UnsupportedImageError } from '../detector/types.js';
-import { ImageAccessError, createNodeImageDecoder } from './image-decoder.js';
+import { UnsupportedImageError } from '../errors/index.js';
+import { ImageAccessError } from './errors/index.js';
+import { createNodeImageDecoder } from './image-decoder.js';
 
 /** A solid-colour image, encoded in memory so the tests need no sample files. */
 function makePng(width: number, height: number): Buffer {

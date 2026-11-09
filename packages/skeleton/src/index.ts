@@ -5,3 +5,4 @@
 export const SKELETON_NAME = 'skeleton-crew';
 
 export * from './detector/index.js';
+export * from './errors/index.js';

@@ -19,8 +19,5 @@ export {
   formatJson,
   type HauntingReport,
 } from './format-report.js';
-export {
-  loadScenes,
-  SceneLoadError,
-  type ImageSizer,
-} from './load-scenes.js';
+export { loadScenes, type ImageSizer } from './load-scenes.js';
+export { CliArgsError, SceneLoadError } from './errors/index.js';

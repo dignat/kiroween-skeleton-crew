@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseCliArgs, CliArgsError } from './cli-args.js';
+import { parseCliArgs } from './cli-args.js';
+import { CliArgsError } from './errors/index.js';
 
 describe('parseCliArgs', () => {
   it('parses a basic compare command', () => {

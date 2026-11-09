@@ -1,7 +1,7 @@
 // Node-only. The one function apps call to add a Tool to a server.
 
 import type { McpServer, StandardSchemaWithJSON, ToolCallback } from '@modelcontextprotocol/server';
-import { SkeletonMcpError } from './errors.js';
+import { SkeletonMcpError } from '../errors/index.js';
 import { errorResult } from './results.js';
 import type { ToolResult } from './results.js';
 

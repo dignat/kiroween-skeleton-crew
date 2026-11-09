@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Detection, Detector, DetectorImageInput } from '@skeleton-crew/core';
-import { loadScenes, SceneLoadError, type ImageSizer } from './load-scenes.js';
+import { SceneLoadError } from './errors/index.js';
+import { loadScenes, type ImageSizer } from './load-scenes.js';
 
 /** Fake detector: returns canned pixel-box detections keyed by file path. */
 function fakeDetector(byPath: Record<string, Detection[]>): Detector {

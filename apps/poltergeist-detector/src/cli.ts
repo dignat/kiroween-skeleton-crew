@@ -4,11 +4,12 @@
 
 import { resolve } from 'node:path';
 import type { DetectOptions } from '@skeleton-crew/core';
-import { parseCliArgs, CliArgsError, USAGE, type CompareCommand } from './cli-args.js';
+import { parseCliArgs, USAGE, type CompareCommand } from './cli-args.js';
 import { compareScenes } from './compare-scenes.js';
 import { createCocoDetector, createImageSizer } from './detector.js';
 import { formatHauntingReport, formatJson } from './format-report.js';
-import { loadScenes, SceneLoadError } from './load-scenes.js';
+import { CliArgsError, SceneLoadError } from './errors/index.js';
+import { loadScenes } from './load-scenes.js';
 
 /** Runs the compare command end to end. Returns the text to print to stdout. */
 async function runCompare(cmd: CompareCommand): Promise<string> {

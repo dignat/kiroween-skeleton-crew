@@ -32,11 +32,3 @@ export type DetectorImageInput =
 export interface Detector {
   detect(image: DetectorImageInput, options?: DetectOptions): Promise<Detection[]>;
 }
-
-/** Thrown when an image's format is not supported, or input is otherwise unusable. */
-export class UnsupportedImageError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UnsupportedImageError';
-  }
-}

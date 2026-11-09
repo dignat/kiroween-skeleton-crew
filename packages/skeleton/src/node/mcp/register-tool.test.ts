@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/server';
 import fc from 'fast-check';
 import * as z from 'zod/v4';
 import { describe, expect, it } from 'vitest';
-import { SkeletonMcpError } from './errors.js';
+import { SkeletonMcpError } from '../errors/index.js';
 import { registerTool } from './register-tool.js';
 import { textResult } from './results.js';
 import { connectClient, textOf } from './test-helpers.js';

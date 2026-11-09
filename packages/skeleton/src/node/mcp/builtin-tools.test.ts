@@ -1,9 +1,9 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { UnsupportedImageError } from '../../detector/types.js';
+import { UnsupportedImageError } from '../../errors/index.js';
 import type { Detection, DetectOptions, Detector, DetectorImageInput } from '../../detector/types.js';
 import { createSkeletonServer } from './create-server.js';
-import { SkeletonMcpError } from './errors.js';
+import { SkeletonMcpError } from '../errors/index.js';
 import { registerTool } from './register-tool.js';
 import { textResult } from './results.js';
 import { connectClient, textOf } from './test-helpers.js';

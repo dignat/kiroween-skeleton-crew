@@ -9,5 +9,4 @@ export type { ImageDecoder, PixelImage } from './pixel-image.js';
 export { createDetector } from './detector.js';
 export { filterByConfidence } from './filter-by-confidence.js';
 export type { ModelAdapter } from './model-adapter.js';
-export { UnsupportedImageError } from './types.js';
 export type { Detection, DetectOptions, Detector, DetectorImageInput } from './types.js';

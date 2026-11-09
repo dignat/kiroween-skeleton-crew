@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDetector } from './detector.js';
 import type { ModelAdapter } from './model-adapter.js';
-import { UnsupportedImageError } from './types.js';
+import { UnsupportedImageError } from '../errors/index.js';
 import type { Detection, DetectorImageInput } from './types.js';
 
 const image: DetectorImageInput = { kind: 'base64', data: 'AAAA', mimeType: 'image/png' };

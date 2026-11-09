@@ -1,17 +1,11 @@
 import { parseArgs } from 'node:util';
+import { CliArgsError } from './errors/index.js';
 
 /**
  * CLI argument parsing (task 16.1), separated from I/O so it can be unit tested
  * (task 16.4). Pure: takes an argv array, returns a parsed command or throws
  * CliArgsError with a message the caller prints to stderr before exiting 1.
  */
-
-export class CliArgsError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CliArgsError';
-  }
-}
 
 export interface CompareCommand {
   kind: 'compare';

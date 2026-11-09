@@ -5,16 +5,9 @@ import { extname, isAbsolute, relative, resolve } from 'node:path';
 import jpeg from 'jpeg-js';
 import { PNG } from 'pngjs';
 import type { ImageDecoder, PixelImage } from '../detector/pixel-image.js';
-import { UnsupportedImageError } from '../detector/types.js';
+import { UnsupportedImageError } from '../errors/index.js';
 import type { DetectorImageInput } from '../detector/types.js';
-
-/** Thrown when a file path is outside the allowed folder, missing, or too large. */
-export class ImageAccessError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ImageAccessError';
-  }
-}
+import { ImageAccessError } from './errors/index.js';
 
 export interface NodeImageDecoderOptions {
   /**
