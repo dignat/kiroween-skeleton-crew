@@ -108,6 +108,17 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 
 Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with.
 
+### Building a new app with `app-generator`
+
+The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-crew/core`, linked via `workspace:*`), not something published to npm. So a developer clones this repo and grows new detection apps within it:
+
+1. Clone the repo, run `nvm use` (Node 22) and `pnpm install` at the root.
+2. Open it in Kiro and switch to the **app-generator** agent.
+3. Tell it the new app's **name** and its one **MCP tool** (snake_case) — for example, "create an app called `shelf-scanner` with one tool `list_shelf`". You don't give it a path; it writes `apps/<name>/` and `.kiro/agents/<name>.json` by convention.
+4. It scaffolds the whole app (package.json, tsconfig, logic + test, `mcp-server.ts` using the skeleton's `createAppServer`/`defineTool`/`serveApp`, the nvm launcher, and the App_Agent), runs install + typecheck + tests, and prints the `.kiro/settings/mcp.json` block for you to paste (it's intentionally not allowed to edit that file itself).
+
+The generated app depends on the skeleton through `workspace:*` and never modifies `packages/` — new apps live entirely under `apps/`.
+
 ## Testing
 
 - `pnpm test` — unit and **property-based** tests (`fast-check`), run offline with fake adapters.

@@ -9,7 +9,7 @@ const values: Record<string, string> = {
   APP_DESCRIPTION: 'A demo agent.',
   PERSONA: 'a friendly demo bot',
   APP_TOOL_NAME: 'demo_tool',
-  MCP_ENTRY: 'apps/demo-app/src/mcp-server.ts',
+  MCP_LAUNCHER: 'apps/demo-app/mcp-launch.sh',
   WELCOME_MESSAGE: 'Hello from the demo app.',
 };
 
