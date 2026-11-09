@@ -79,7 +79,7 @@ export function createCocoSsdAdapter(options: CocoSsdAdapterOptions): ModelAdapt
     },
 
     async infer(image: DetectorImageInput): Promise<Detection[]> {
-      if (!model) throw new Error('CocoSsdAdapter.infer() called before load()');
+      if (!model) throw new Error('coco-ssd adapter: infer() called before load()');
       const pixels = await decodeImage(image);
       const tensor = tf.browser.fromPixels(pixels, 3);
       try {

@@ -94,7 +94,7 @@ export function createMobileNetFoodAdapter(options: MobileNetFoodAdapterOptions)
     },
 
     async infer(image: DetectorImageInput): Promise<Detection[]> {
-      if (!model) throw new Error('MobileNetFoodAdapter.infer() called before load()');
+      if (!model) throw new Error('mobilenet-food adapter: infer() called before load()');
       const pixels = await decodeImage(image);
       const tensor = tf.browser.fromPixels(pixels, 3);
       try {

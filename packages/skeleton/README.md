@@ -63,7 +63,7 @@ The adapters take an **image decoder** as a parameter, because decoding is the o
 - **stdout belongs to the protocol.** `serveOverStdio` sends `console.log` to stderr, but still log with `console.error` in your own code.
 - **A handler that throws** becomes an error result and the server keeps running.
 - **Detection is slow on the default backend.** It uses pure JavaScript TensorFlow.js, about 5 seconds per image for COCO-SSD on a laptop. `@tensorflow/tfjs-node` is an optional, much faster backend, but it needs build tools to install.
-- **The food classifier is best-effort.** `MobileNetFoodAdapter` uses ImageNet labels, which lack tomato, onion, carrot, garlic and avocado. Treat its output as suggestions the user can edit.
+- **The food classifier is best-effort.** `createMobileNetFoodAdapter` uses ImageNet labels, which lack tomato, onion, carrot, garlic and avocado. Treat its output as suggestions the user can edit.
 - **Model download behind a proxy**: if loading a model fails with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, run Node with `--use-system-ca` (for example `NODE_OPTIONS=--use-system-ca`).
 
 ## Tests

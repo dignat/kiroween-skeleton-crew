@@ -16,7 +16,7 @@ const enabled = process.env['RUN_MODEL_TESTS'] === '1';
 const TWO_MINUTES = 120_000;
 
 describe.skipIf(!enabled)('real models (RUN_MODEL_TESTS=1)', () => {
-  it('CocoSsdAdapter returns localized detections for a real photo', { timeout: TWO_MINUTES }, async () => {
+  it('createCocoSsdAdapter returns localized detections for a real photo', { timeout: TWO_MINUTES }, async () => {
     const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
     const detections = await detector.detect({ kind: 'filePath', path: 'fridge-salad-drawer.jpg' }, { minConfidence: 0.2 });
 
@@ -28,7 +28,7 @@ describe.skipIf(!enabled)('real models (RUN_MODEL_TESTS=1)', () => {
     }
   });
 
-  it('MobileNetFoodAdapter returns only allowlisted whole-image labels', { timeout: TWO_MINUTES }, async () => {
+  it('createMobileNetFoodAdapter returns only allowlisted whole-image labels', { timeout: TWO_MINUTES }, async () => {
     const allowedLabels = ['banana', 'broccoli', 'cucumber', 'mushroom', 'bell pepper', 'orange', 'lemon', 'zucchini'];
     const detector = createDetector(createMobileNetFoodAdapter({ decodeImage, allowedLabels, defaultMinConfidence: 0 }));
     const detections = await detector.detect({ kind: 'filePath', path: 'potatoes-in-pan.jpg' });
