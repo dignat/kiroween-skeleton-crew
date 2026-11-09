@@ -28,7 +28,7 @@ export type DetectorImageInput =
   | { kind: 'filePath'; path: string }
   | { kind: 'base64'; data: string; mimeType: string };
 
-/** Implemented by model adapters (CocoSsdAdapter, MobileNetFoodAdapter, ...). */
+/** Implemented by model adapters (createCocoSsdAdapter, createMobileNetFoodAdapter, ...). */
 export interface Detector {
   detect(image: DetectorImageInput, options?: DetectOptions): Promise<Detection[]>;
 }

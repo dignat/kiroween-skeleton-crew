@@ -3,7 +3,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
-import { CocoSsdAdapter, createDetector, type Detector, type DetectorImageInput } from '@skeleton-crew/core';
+import { createCocoSsdAdapter, createDetector, type Detector, type DetectorImageInput } from '@skeleton-crew/core';
 import { createNodeImageDecoder } from '@skeleton-crew/core/node';
 import type { ImageSizer } from './load-scenes.js';
 
@@ -13,7 +13,7 @@ import type { ImageSizer } from './load-scenes.js';
  */
 export function createCocoDetector(allowedRoot: string): Detector {
   const decodeImage = createNodeImageDecoder({ allowedRoot });
-  const adapter = new CocoSsdAdapter({ decodeImage });
+  const adapter = createCocoSsdAdapter({ decodeImage });
   return createDetector(adapter);
 }
 

@@ -1,9 +1,9 @@
 // Browser-safe detection core. Do not import Node modules from this folder.
 
-export { CocoSsdAdapter, cocoPredictionToDetection } from './coco-ssd-adapter.js';
+export { createCocoSsdAdapter, cocoPredictionToDetection } from './coco-ssd-adapter.js';
 export type { CocoPrediction, CocoSsdAdapterOptions } from './coco-ssd-adapter.js';
 export { countByLabel } from './count-by-label.js';
-export { MobileNetFoodAdapter, filterToAllowedLabels } from './mobilenet-food-adapter.js';
+export { createMobileNetFoodAdapter, filterToAllowedLabels } from './mobilenet-food-adapter.js';
 export type { ClassifierPrediction, MobileNetFoodAdapterOptions } from './mobilenet-food-adapter.js';
 export type { ImageDecoder, PixelImage } from './pixel-image.js';
 export { createDetector } from './detector.js';

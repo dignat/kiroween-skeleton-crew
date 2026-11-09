@@ -58,40 +58,22 @@ export interface MobileNetFoodAdapterOptions {
  * Best-effort only: Spike C found it misses common ingredients (no tomato, onion, carrot,
  * garlic or avocado class), so apps should treat results as suggestions the user can edit.
  */
-export class MobileNetFoodAdapter implements ModelAdapter {
-  readonly name = 'mobilenet-food';
-  readonly defaultMinConfidence: number;
-  private model: mobilenet.MobileNet | undefined;
-  private readonly decodeImage: ImageDecoder;
-  private readonly allowed: ReadonlySet<string>;
-  private readonly topK: number;
-  private readonly warmUp: boolean;
-
-  constructor(options: MobileNetFoodAdapterOptions) {
-    this.decodeImage = options.decodeImage;
-    this.allowed = new Set(options.allowedLabels.map((l) => l.trim().toLowerCase()));
-    this.defaultMinConfidence = options.defaultMinConfidence ?? 0.1;
-    this.topK = options.topK ?? 10;
-    this.warmUp = options.warmUp ?? false;
-  }
-
-  async load(): Promise<void> {
-    await tf.ready();
-    this.model = await mobilenet.load({ version: 2, alpha: 1.0 });
-    if (this.warmUp) {
-      await this.warmUpOnce();
-    }
-  }
+export function createMobileNetFoodAdapter(options: MobileNetFoodAdapterOptions): ModelAdapter {
+  const { decodeImage } = options;
+  const allowed: ReadonlySet<string> = new Set(options.allowedLabels.map((l) => l.trim().toLowerCase()));
+  const defaultMinConfidence = options.defaultMinConfidence ?? 0.1;
+  const topK = options.topK ?? 10;
+  const warmUp = options.warmUp ?? false;
+  let model: mobilenet.MobileNet | undefined;
 
   /**
    * Primes the backend with one classification on a small blank image. Any error
    * is swallowed and logged to stderr: warm-up is an optimization, not correctness.
    */
-  private async warmUpOnce(): Promise<void> {
-    if (!this.model) return;
+  async function warmUpOnce(loaded: mobilenet.MobileNet): Promise<void> {
     const dummy = tf.zeros([32, 32, 3], 'int32') as tf.Tensor3D;
     try {
-      await this.model.classify(dummy, this.topK);
+      await loaded.classify(dummy, topK);
     } catch (error) {
       console.error(`[mobilenet-food] warm-up skipped: ${(error as Error).message}`);
     } finally {
@@ -99,15 +81,28 @@ export class MobileNetFoodAdapter implements ModelAdapter {
     }
   }
 
-  async infer(image: DetectorImageInput): Promise<Detection[]> {
-    if (!this.model) throw new Error('MobileNetFoodAdapter.infer() called before load()');
-    const pixels = await this.decodeImage(image);
-    const tensor = tf.browser.fromPixels(pixels, 3);
-    try {
-      const predictions = await this.model.classify(tensor, this.topK);
-      return filterToAllowedLabels(predictions, this.allowed);
-    } finally {
-      tensor.dispose();
-    }
-  }
+  return {
+    name: 'mobilenet-food',
+    defaultMinConfidence,
+
+    async load(): Promise<void> {
+      await tf.ready();
+      model = await mobilenet.load({ version: 2, alpha: 1.0 });
+      if (warmUp) {
+        await warmUpOnce(model);
+      }
+    },
+
+    async infer(image: DetectorImageInput): Promise<Detection[]> {
+      if (!model) throw new Error('MobileNetFoodAdapter.infer() called before load()');
+      const pixels = await decodeImage(image);
+      const tensor = tf.browser.fromPixels(pixels, 3);
+      try {
+        const predictions = await model.classify(tensor, topK);
+        return filterToAllowedLabels(predictions, allowed);
+      } finally {
+        tensor.dispose();
+      }
+    },
+  };
 }

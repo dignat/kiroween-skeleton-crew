@@ -5,9 +5,9 @@
 
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { CocoSsdAdapter } from '../detector/coco-ssd-adapter.js';
+import { createCocoSsdAdapter } from '../detector/coco-ssd-adapter.js';
 import { createDetector } from '../detector/detector.js';
-import { MobileNetFoodAdapter } from '../detector/mobilenet-food-adapter.js';
+import { createMobileNetFoodAdapter } from '../detector/mobilenet-food-adapter.js';
 import { createNodeImageDecoder } from './image-decoder.js';
 
 const samplesDir = fileURLToPath(new URL('../../../../samples', import.meta.url));
@@ -17,7 +17,7 @@ const TWO_MINUTES = 120_000;
 
 describe.skipIf(!enabled)('real models (RUN_MODEL_TESTS=1)', () => {
   it('CocoSsdAdapter returns localized detections for a real photo', { timeout: TWO_MINUTES }, async () => {
-    const detector = createDetector(new CocoSsdAdapter({ decodeImage }));
+    const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
     const detections = await detector.detect({ kind: 'filePath', path: 'fridge-salad-drawer.jpg' }, { minConfidence: 0.2 });
 
     expect(Array.isArray(detections)).toBe(true);
@@ -30,7 +30,7 @@ describe.skipIf(!enabled)('real models (RUN_MODEL_TESTS=1)', () => {
 
   it('MobileNetFoodAdapter returns only allowlisted whole-image labels', { timeout: TWO_MINUTES }, async () => {
     const allowedLabels = ['banana', 'broccoli', 'cucumber', 'mushroom', 'bell pepper', 'orange', 'lemon', 'zucchini'];
-    const detector = createDetector(new MobileNetFoodAdapter({ decodeImage, allowedLabels, defaultMinConfidence: 0 }));
+    const detector = createDetector(createMobileNetFoodAdapter({ decodeImage, allowedLabels, defaultMinConfidence: 0 }));
     const detections = await detector.detect({ kind: 'filePath', path: 'potatoes-in-pan.jpg' });
 
     for (const d of detections) {
@@ -40,7 +40,7 @@ describe.skipIf(!enabled)('real models (RUN_MODEL_TESTS=1)', () => {
   });
 
   it('loads each model once and reuses it', { timeout: TWO_MINUTES }, async () => {
-    const detector = createDetector(new CocoSsdAdapter({ decodeImage }));
+    const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
     const first = Date.now();
     await detector.detect({ kind: 'filePath', path: 'potatoes-in-pan.jpg' });
     const firstMs = Date.now() - first;

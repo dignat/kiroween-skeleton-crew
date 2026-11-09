@@ -90,9 +90,9 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
     - _Requirements: 2.5, 2.6_
 
 - [x] 10. Model adapters
-  - [x] 10.1 `CocoSsdAdapter` (works in Node and the browser)
+  - [x] 10.1 `createCocoSsdAdapter` (works in Node and the browser)
     - _Requirements: 2.1, 2.6_
-  - [x] 10.2 `MobileNetFoodAdapter` with an allowlist of food labels passed in by the app, shaped by the results of Spike C
+  - [x] 10.2 `createMobileNetFoodAdapter` with an allowlist of food labels passed in by the app, shaped by the results of Spike C
     - _Requirements: 2.2, 6.6_
   - [x] 10.3 Optional integration test that loads the real models, skipped unless `RUN_MODEL_TESTS=1`
     - _Requirements: 2.1_

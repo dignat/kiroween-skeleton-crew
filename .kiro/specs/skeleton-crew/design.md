@@ -67,8 +67,8 @@ playground/
 ### Layers
 
 1. **Detector (packages/skeleton/src/detector + detector-browser).** A `Detector` interface with one method, `detect(image, options) -> Detection[]`, implemented by swappable **model adapters**. Two adapters ship in the skeleton:
-   - `CocoSsdAdapter` — object detection with boxes, used by the Poltergeist Detector.
-   - `MobileNetFoodAdapter` — whole-image food/ingredient classification, used by The Witch's Pantry, via `@tensorflow/tfjs` + `@tensorflow-models/mobilenet` (or an equivalent food-oriented classifier), filtered to a curated food-label allowlist maintained in the Witch's Pantry app.
+   - `createCocoSsdAdapter` — object detection with boxes, used by the Poltergeist Detector.
+   - `createMobileNetFoodAdapter` — whole-image food/ingredient classification, used by The Witch's Pantry, via `@tensorflow/tfjs` + `@tensorflow-models/mobilenet` (or an equivalent food-oriented classifier), filtered to a curated food-label allowlist maintained in the Witch's Pantry app.
    
    Both adapters are built on `@tensorflow/tfjs`, so they run unchanged in Node and in the browser; only image decoding differs per environment (browser canvas vs. a pure-JS decoder such as `jpeg-js`/`pngjs` in Node). This matters because the Pantry runs the food adapter in two places: in the browser for the UI, and in Node inside its MCP server so Kiro's `detect_objects` calls work on the same model. All callers use the same `Detector` interface (Requirement 2.6) regardless of adapter or environment.
 
@@ -94,7 +94,7 @@ compare before.jpg after.jpg --json --min-confidence 0.4 --tolerance 0.5
  CLI (src/cli.ts) ──► checks both paths, names the one that fails
         │
         ▼
- Detector.detect() on each photo (CocoSsdAdapter, pure-JS CPU backend)
+ Detector.detect() on each photo (createCocoSsdAdapter, pure-JS CPU backend)
         │
         ▼
  compareScenes(before, after, { moveTolerance }) ──► appeared / vanished / moved / unchanged
@@ -111,7 +111,7 @@ The same `compareScenes` function backs the `compare_scenes` MCP tool, which cal
  User drops/selects an image
         │
         ▼
- Detector.detect() (MobileNetFoodAdapter, runs in-browser via tfjs)
+ Detector.detect() (createMobileNetFoodAdapter, runs in-browser via tfjs)
         │
         ▼
  Ingredient chip list (editable: remove / add by typing)
@@ -371,7 +371,7 @@ The test images were stock photos used only for this local test. They are not in
 
 Decision (gate triggered): recognition is poor for the Witch's Pantry's purpose, so **the editable ingredient chips and a quick-add list are the primary input, and detection is a helper that pre-fills suggestions**. Consequences for the build:
 
-- `MobileNetFoodAdapter` (task 10.2) must be treated as a best-effort helper. Its allowlist keeps only ingredient-like labels, such as broccoli, cauliflower, cucumber, zucchini, bell pepper, mushroom, banana, lemon, orange, strawberry, and head cabbage, and drops non-food labels such as plate and tray. Low-confidence guesses should be suggested, not auto-added.
+- `createMobileNetFoodAdapter` (task 10.2) must be treated as a best-effort helper. Its allowlist keeps only ingredient-like labels, such as broccoli, cauliflower, cucumber, zucchini, bell pepper, mushroom, banana, lemon, orange, strawberry, and head cabbage, and drops non-food labels such as plate and tray. Low-confidence guesses should be suggested, not auto-added.
 - The UI copy must say "possible ingredients, please check" and never claim certainty.
 - The recipe dataset and quick-add list (tasks 19.1 and 20.4) are the main route to a working demo, and tomato, onion, potato, egg and cheese must be reachable there.
 
