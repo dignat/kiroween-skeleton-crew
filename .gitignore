@@ -25,4 +25,3 @@ yarn.lock
 # Local working drafts (Devpost text, blog/social posts, planning notes).
 # Not part of the submission repo — pasted into Devpost / published on their platforms.
 docs/
-KIRO_USAGE.md
