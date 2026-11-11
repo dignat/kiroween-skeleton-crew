@@ -154,7 +154,7 @@ Each application supplies only configuration, app-specific tools, and a Kiro cus
 
 #### Acceptance Criteria
 
-1. THE project SHALL include an Agent_Hook that runs the affected package's tests when a TypeScript source file is saved.
+1. THE project SHALL include an Agent_Hook that runs the project's tests (`pnpm test`) when a TypeScript source file is saved.
 2. THE project SHALL include an Agent_Hook that, when a new Tool file is created, checks that the Tool is registered and documented.
 3. THE project SHALL include an Agent_Hook that, after a spec task completes, adds a short entry to the Usage_Log.
 
@@ -195,7 +195,7 @@ Each application supplies only configuration, app-specific tools, and a Kiro cus
 
 #### Acceptance Criteria
 
-1. THE project SHALL include a Usage_Log with sections for: Kiro IDE/CLI/Web, custom agents, agent hooks, spec-driven development, steering, MCP, property-based testing, and Kiro powers.
+1. THE project SHALL include a Usage_Log with sections for: specs (spec-driven development), steering, custom agents, MCP, agent hooks, Kiro powers, a Kiro CLI vs IDE comparison, and property-based testing, plus a summary table at the top that maps each Kiro feature to its evidence.
 2. THE Usage_Log SHALL include concrete examples, such as a problem a hook or property test caught, rather than only feature lists.
 3. THE Usage_Log SHALL include a comparison between spec-driven development and vibe coding based on this project.
 4. THE project SHALL keep this spec (requirements, design, tasks) in `.kiro/specs/skeleton-crew/`.
@@ -224,7 +224,7 @@ Each application supplies only configuration, app-specific tools, and a Kiro cus
 3. THE submission SHALL include instructions for running the CLI Application, since it has no deployed URL.
 4. THE submission SHALL include a text description of the project's features and functionality for the Devpost form.
 5. THE submission SHALL include a demo video that is 3 minutes or under, uploaded to YouTube as public, showing the project working end-to-end on the device it was built for, with no third-party trademarks or copyrighted music.
-6. THE submission SHALL include the Kiro usage write-up (Requirement 11 / `KIRO_USAGE.md`) covering IDE/CLI/Web usage, custom agents, agent hooks, spec-driven development, steering, MCP, property-based testing, and Kiro powers.
+6. THE submission SHALL include the Kiro usage write-up (Requirement 11 / `KIRO_USAGE.md`) covering specs, steering, custom agents, MCP, agent hooks, Kiro powers, the IDE vs CLI comparison, and property-based testing.
 7. THE submission SHALL select the Skeleton Crew category in the Devpost form.
 8. WHERE the entrant wants to qualify for the Blog Post Bonus Prize, THE submission SHALL include a link to a public blog post on a third-party platform, published during the hackathon submission period, mentioning "Kiroween Hackathon 2026".
 9. WHERE the entrant wants to qualify for the Social Blitz Bonus Prize, THE submission SHALL include a link to a public social media post that starts with the hashtag `#KiroweenHackathon26` and contains original commentary rather than AI-generated text.

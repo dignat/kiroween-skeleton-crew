@@ -5,7 +5,7 @@
 The Skeleton is a pnpm workspaces monorepo (Node 22 LTS) with one shared package (`packages/skeleton`) and two applications (`apps/poltergeist-detector`, `apps/witches-pantry`). The Skeleton exposes a detector abstraction and an MCP server kit. Each Application wraps the Skeleton with its own CLI or web UI, its own MCP tools, and its own Kiro custom agent (App_Agent). Kiro is the only LLM in the system: it talks to each Application's MCP server as a client.
 
 ```
-playground/
+skeleton-crew/
 ├── LICENSE                          # MIT, required for Requirement 12
 ├── README.md                        # root overview, links to both apps
 ├── KIRO_USAGE.md
@@ -13,7 +13,7 @@ playground/
 ├── tsconfig.base.json               # shared strict compiler options, extended by each package
 ├── vitest.config.ts                 # one workspace-wide test run
 ├── pnpm-workspace.yaml              # packages: ["packages/*", "apps/*"]
-├── .nvmrc                           # 22
+├── .nvmrc                           # 22.23.0
 ├── samples/                         # sample images, no copyrighted material
 ├── .kiro/
 │   ├── settings/mcp.json            # registers both app MCP servers with Kiro
@@ -38,10 +38,11 @@ playground/
 │   └── skeleton/
 │       ├── package.json
 │       └── src/
-│           ├── detector/            # Node-only entry point
-│           ├── detector-browser/    # browser-safe entry point
-│           ├── mcp/                 # MCP server kit (Node-only)
-│           └── agent-template/      # App_Agent markdown template
+│           ├── detector/            # browser-safe entry point (@skeleton-crew/core)
+│           ├── errors/              # shared typed errors
+│           └── node/                # Node-only entry point (@skeleton-crew/core/node)
+│               └── mcp/             # MCP server kit
+│       (agent-template/ sits next to src/, as JSON)
 └── apps/
     ├── poltergeist-detector/   # CLI, Node
     │   ├── package.json
@@ -185,7 +186,7 @@ interface SceneComparison {
 function compareScenes(
   before: Detection[],
   after: Detection[],
-  options?: { moveTolerance?: number }                                // default 0.5
+  options?: { moveTolerance?: number }                                // default 0.05 (set from Spike E)
 ): SceneComparison;
 ```
 
@@ -219,13 +220,13 @@ Matching works on ingredient names only, so the core flow does not depend on the
 
 - Sorted by match count descending; only recipes with at least one matched ingredient are returned (Requirement 10.7).
 - Vite + TypeScript, no framework, to keep the skeleton's UI shell minimal and reusable. Ingredient chips are plain HTML with ARIA labelling for accessibility (Requirement 6.13).
-- Recipe dataset: `apps/witches-pantry/src/recipes.json`, written originally for this project (not scraped), themed as "potions" (Requirement 6.15, Requirement 12.6).
+- Recipe dataset: `apps/witches-pantry/src/data/recipes.json`, written originally for this project (not scraped), themed as "potions" (Requirement 6.15, Requirement 12.6).
 
 ### Nutrition, Curse Level, and Potion Purity (stretch, Requirement 14)
 
 Data files, both in `apps/witches-pantry/src/data/`:
 - `recipes.json`: recipes with grams per ingredient and a serving count.
-- `nutrition.json`: per-100 g values for about 60 to 80 ingredients (`kcal`, `protein`, `carbs`, `fat`, `satFat`, `fibre`, `sodiumMg`, `addedSugar`) plus a `source` field per entry. Values are taken once from USDA FoodData Central, which is public domain under CC0 1.0 (confirmed in Spike D, see below). The added sugar column is set by hand: 0 for whole foods, and the true value for sugar, honey, and syrups. The app makes no network calls for nutrition.
+- `nutrition.json`: per-100 g values for 50 ingredients (every name used by the recipes) (`kcal`, `protein`, `carbs`, `fat`, `satFat`, `fibre`, `sodiumMg`, `addedSugar`) plus a `source` field per entry. Values are taken once from USDA FoodData Central, which is public domain under CC0 1.0 (confirmed in Spike D, see below). The added sugar column is set by hand: 0 for whole foods, and the true value for sugar, honey, and syrups. The app makes no network calls for nutrition.
 
 Pure functions, shared by the UI and the MCP tool (same pattern as `suggestRecipes`):
 
@@ -309,7 +310,7 @@ Added when the user asked for a guard against harmful or inappropriate uploads, 
 
 ## Deployment
 
-- **Poltergeist Detector**: published as a local CLI; README documents `pnpm install` then `pnpm --filter poltergeist-detector start compare <before> <after>` from the repo root (with an optional `pnpm link --global` to get a bare `poltergeist-detector compare <before> <after>` command). No hosting needed (Requirement 13.3).
+- **Poltergeist Detector**: published as a local CLI; README documents `pnpm install` then `node --import tsx apps/poltergeist-detector/src/cli.ts compare <before> <after>` from the repo root (with an optional `pnpm link --global` to get a bare `poltergeist-detector compare <before> <after>` command). `pnpm --filter ... start` is not used: pnpm runs from the app folder, and the Detector's allowed root is the cwd, so repo-root `samples/` paths would not resolve (found in the task 34 clean-clone test). No hosting needed (Requirement 13.3).
 - **The Witch's Pantry**: `pnpm --filter witches-pantry build` (Vite) produces static files in `dist/`, deployed via GitHub Pages (a `gh-pages` branch or GitHub Actions workflow), giving judges a working URL per Requirement 6.4 / 13.2.
 
 ## Spike B result: detection speed in Node (decided)
@@ -344,7 +345,7 @@ Tested in the Kiro IDE with a throwaway `hello` server and a throwaway agent. Fi
 - **stdout rule:** with `serveStdio` from `@modelcontextprotocol/server/stdio`, stdout carried only JSON-RPC and the startup banner went to stderr. Invalid input returned `isError: true` with a Zod message and the server kept running (supports Requirements 3.4, 3.5, 3.7).
 - **Custom agent format:** `.kiro/agents/<name>.json` with `name`, `description`, `prompt`, `mcpServers`, `tools`, `permissions.rules`, `includeMcpJson`, and `welcomeMessage`. Select one MCP tool with `"tools": ["@server/tool"]`, and pre-approve it with `{ "capability": "mcp", "match": ["server/tool"], "effect": "allow" }`. `allowedTools` and `toolsSettings` are CLI 2.x legacy and are not read by IDE 1.0, so agent files must not use them.
 - **Tool restriction:** with the agent active, a request to list project files was refused, and `hello` still worked. Set `includeMcpJson: false` so the agent sees only its own server.
-- **Not verified:** which Node version Kiro uses to launch servers (the server started, but the version was not recorded), and whether the kiro-cli issue about workspace agents not receiving MCP tools (kirodotdev/Kiro #5873, kiro-cli 1.26.2) applies to the CLI. The IDE path works.
+- **Open at the time, resolved later:** which Node version Kiro uses to launch servers (answered in the task 17 addendum below: the system default, not the nvm one), and whether the kiro-cli issue about workspace agents not receiving MCP tools (kirodotdev/Kiro #5873) applies to the CLI (answered in task 30: App_Agent MCP tools did not reliably surface in kiro-cli 2.35.2; the IDE is the reliable surface).
 
 Decision: use `.kiro/settings/mcp.json` for the dev-time registration of each app server and one inline-`mcpServers` agent per app in `.kiro/agents/`, using the formats above. Tasks 17 and 21.2 can proceed on this basis.
 
@@ -354,7 +355,7 @@ Registering the Poltergeist Detector server as `node --import tsx apps/.../mcp-s
 
 Fix: each app ships a tiny POSIX launcher (`apps/<app>/mcp-launch.sh`) that loads nvm, selects the version from the repo's `.nvmrc`, and `exec`s `node --import tsx <server>`, with all nvm output sent to stderr so stdout stays clean for the protocol. Both `.kiro/settings/mcp.json` and each agent's inline `mcpServers` use `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. This is reproducible for anyone who cloned the repo and has nvm installed, and it does not depend on how Kiro was launched. The README (task 32) must tell users to install nvm and, if they do not use nvm, to ensure Node 22 is the default `node` on PATH.
 
-Dev_Agent tool names (task 28): built-in tool names in the agent `tools` array are `fs_read`, `fs_write`, `fs_list`, `shell`, `subagent` (from the current Kiro agent JSON schema). MCP tools stay `@server/tool`. The App_Agents are MCP-only and use `permissions.rules` with `capability: "mcp"` (verified in Spike A). The Dev_Agents (`tool-builder`, `app-generator`) need the built-in tools, which in this Kiro are named `fs_read`, `fs_write`, `execute_bash`, `grep`, `glob` (read from the built-in `~/.kiro/agents/kirocrew*.json` agents, the authoritative reference). Getting the agents to appear took a controlled test: adding `allowedTools`, `toolsSettings`, or `permissions.rules` with non-`mcp` capabilities caused the IDE to **silently drop the agent from the selector** (no error, no welcome message, prompts fell through to the default agent). A clean A/B — `tool-builder` without `allowedTools` appeared, `app-generator` with it did not — isolated `allowedTools` as the trigger. Decision: `allowedTools` (and `toolsSettings`) are the fields that break discovery, not permission rules. The Dev_Agents use `name`, `description`, `prompt`, `tools`, `permissions`, `includeMcpJson`, `welcomeMessage` — the same field set as the App_Agents — with built-in tool names in `tools` and a `permissions.rules` block. The rules reuse the App_Agents' exact `{ capability, match, effect }` shape, but with built-in capabilities instead of `mcp`: `fs_read` allowed on `**`, `fs_write` allowed on `apps/**` (plus `.kiro/agents/**` for app-generator), `execute_bash` allowed for the safe pnpm/chmod commands and denied for `git push *` / `git commit *` / `rm -rf *`. Confirmed in the IDE: both Dev_Agents appear in the selector and activate with these rules. The safety limits are also restated in the prompt as a backstop.
+Dev_Agent tool names (task 28): MCP tools stay `@server/tool`. The App_Agents are MCP-only and use `permissions.rules` with `capability: "mcp"` (verified in Spike A). The Dev_Agents (`tool-builder`, `app-generator`) need the built-in tools. The names in the CLI docs (`shell`) and the IDE changelog (`read`/`write`/`shell`) did not work; in this Kiro they are `fs_read`, `fs_write`, `execute_bash`, `grep`, `glob` (read from the built-in `~/.kiro/agents/kirocrew*.json` agents, the authoritative reference). Getting the agents to appear took a controlled test: adding `allowedTools`, `toolsSettings`, or `permissions.rules` with non-`mcp` capabilities caused the IDE to **silently drop the agent from the selector** (no error, no welcome message, prompts fell through to the default agent). A clean A/B — `tool-builder` without `allowedTools` appeared, `app-generator` with it did not — isolated `allowedTools` as the trigger. Decision: `allowedTools` (and `toolsSettings`) are the fields that break discovery, not permission rules. The Dev_Agents use `name`, `description`, `prompt`, `tools`, `permissions`, `includeMcpJson`, `welcomeMessage` — the same field set as the App_Agents — with built-in tool names in `tools` and a `permissions.rules` block. The rules reuse the App_Agents' exact `{ capability, match, effect }` shape, but with built-in capabilities instead of `mcp`: `fs_read` allowed on `**`, `fs_write` allowed on `apps/**` (plus `.kiro/agents/**` for app-generator), `execute_bash` allowed for the safe pnpm/chmod commands and denied for `git push *` / `git commit *` / `rm -rf *`. Confirmed in the IDE: both Dev_Agents appear in the selector and activate with these rules. The safety limits are also restated in the prompt as a backstop.
 
 Convention — one launcher per app (decided): each app owns its own `mcp-launch.sh`; there is no shared root launcher. The script is identical across apps except for the final server path, and it keeps every app self-contained and runnable on its own, matching the "apps don't depend on each other, skeleton stays generic" rule. When both apps are registered, `.kiro/settings/mcp.json` lists two servers (`poltergeist-detector` → `apps/poltergeist-detector/mcp-launch.sh`, `witches-pantry` → `apps/witches-pantry/mcp-launch.sh`), each with `command: "sh"`. The `app-generator` agent (task 28.2) stamps out this launcher for every new app.
 

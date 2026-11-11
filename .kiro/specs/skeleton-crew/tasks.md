@@ -11,7 +11,7 @@ Deadline: **4 December 2026**. Target submission date: **Wednesday 2 December**,
 ### Phase 0: Already done
 
 - [x] 0.1 Requirements and design written and reviewed
-- [x] 0.2 Node pinned to 22.23.0 in `.nvmrc`, `engines.node >=22` set
+- [x] 0.2 Node pinned to 22.23.0 in `.nvmrc`, `engines.node` set (tightened to `>=22.12.0` in task 1, because Vitest 5 needs it)
 - [x] 0.3 pnpm pinned to 10.34.9 in `package.json`
 - [x] 0.4 `AGENTS.md` updated with project rules, `KIRO_USAGE.md` started
 - [x] 0.5 Unrelated file moved out of the repo
@@ -70,7 +70,7 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 - [x] 7. Collect sample images
   - 12 to 20 photos taken by you (food, a desk, pets or toys, a street scene). No stock photos with unclear licenses, no logos or brands
   - Store in `samples/` with a short `samples/README.md` stating they are your own work
-  - Done with a reduced set: 4 original photos (all food or kitchen) plus rotated copies, 15 files in total, with brands and logos pixelated. Still missing: the before and after photo pair for the Poltergeist Detector, which Spike E (task 14a) collects
+  - Done with a reduced set: 4 original photos (all food or kitchen) plus rotated copies, with brands and logos pixelated. The before and after photo pairs for the Poltergeist Detector (apple, one_apple, tomatoes) were added later, from Spike E (task 14.1)
   - _Requirements: 4.4, 12.6_
 
 - [x] 8. Checkpoint: spikes complete. Update `design.md`, `KIRO_USAGE.md`
@@ -124,7 +124,7 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 ### Phase 4: Poltergeist Detector CLI (week 2)
 
-- [x] 14.1 Spike E: scene comparison on real photos (blocks task 15)
+- [x] 14.1 Spike E: scene comparison on real photos (blocks task 15; called 14a in the dependency graph)
   - Take two photos of the same desk or shelf from the same spot (a phone propped on a book works), then move two or three objects between them and remove one. Save them as your own photos in `samples/` (for example `desk-before.jpg` and `desk-after.jpg`), with no brand names, logos, people, or screens showing anything personal
   - Run COCO-SSD on both and list what it detects. Check three things: does it find the same objects in both photos when nothing changed, how far do box centres drift between two photos of an unchanged scene, and does a moved object keep its label
   - Take a third photo of the unchanged desk from the same spot and compare it with the first. The result should report nothing, and anything it does report is a false change that the thresholds must absorb
@@ -244,7 +244,7 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 ### Phase 7: Kiro layer (build as soon as the pattern is stable, finish in week 4)
 
-- [ ] 28. Developer custom agents
+- [ ] 28. Developer custom agents (28.1 and 28.2 done; the 28.3 rehearsal is done, only the screen recording remains)
   - [x] 28.1 `tool-builder` agent, written after the CLI app exists so it captures real conventions. Test it by asking it to add a small tool and check the result follows the steering file
     - Agent at `.kiro/agents/tool-builder.json`. TESTED in Kiro: asked it to add a `list_labels` tool to the poltergeist-detector app. It read project-structure.md, created a pure function (`coco-labels.ts`) with a Vitest test incl. a property test, registered a snake_case tool with a Zod schema from @skeleton-crew/core/node returning jsonResult, and prompted for approval on each write/command. Result follows the steering; the tool (80 COCO labels) was kept. 143 tests pass. Note: the agent's welcomeMessage did not show on switch (cosmetic; it shows in a fresh chat). Getting the agent to appear at all required dropping `allowedTools` — see design addendum.
     - _Requirements: 7.1, 7.3_
@@ -252,7 +252,8 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
     - Agent at `.kiro/agents/app-generator.json`. Scaffolds package.json, tsconfig, logic + test, mcp-server.ts, the per-app mcp-launch.sh, and the App_Agent from the template; prints the mcp.json block for the user to paste (agent cannot write to .kiro/settings/). Runs install + typecheck + test to verify.
     - _Requirements: 7.2, 7.3_
   - [ ] 28.3 Record a clean run of `app-generator` creating a third demo app for the video, confirm it builds, then discard it. The repo must contain exactly two applications
-    - Pending: run in Kiro and screen-record for the video, confirm it builds, then delete the demo app so the repo keeps exactly two applications.
+    - Rehearsal done: the generator was followed to scaffold a throwaway `shelf-scanner` app; install, typecheck and tests were green and the server listed its tools. The demo app was deleted, and a template mismatch it exposed (`node --import tsx` vs `sh mcp-launch.sh`) was fixed.
+    - Pending: screen-record a run for the video, then delete the demo app again so the repo keeps exactly two applications.
     - _Requirements: 7.2, 1.1_
 
 - [x] 29. Remaining steering and hooks
@@ -292,7 +293,7 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 - [x] 34. Clean-clone test
   - Clone into a fresh folder, run `nvm use`, `pnpm install`, `pnpm test`, `pnpm build`, run the CLI on the before and after photos in `samples/`, and open the deployed URL. Fix everything that breaks
-  - Cloned fresh from origin to /tmp (HEAD == origin/main, clean tree). `nvm use` → Node 22.23.0; `pnpm install --frozen-lockfile` clean (no native build); `pnpm typecheck` clean; `pnpm test` 157 passed / 3 skipped; `pnpm build` produced the web dist. CAUGHT A DOC BUG: the READMEs told users to run the CLI via `pnpm --filter poltergeist-detector start compare samples/...`, which fails because pnpm runs from the app folder and the Detector's allowed-root is the cwd, so repo-root `samples/...` paths are not found (and absolute paths outside the app dir are rejected by the security check). Fixed both READMEs to `node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/... samples/...` run from the repo root; re-verified report/--json/--help and missing-file exit 1 all work from the clone. Web app: build green; the deployed GitHub Pages URL is the judge path.
+  - Cloned fresh from origin to /tmp (HEAD == origin/main, clean tree). `nvm use` → Node 22.23.0; `pnpm install --frozen-lockfile` clean (no native build); `pnpm typecheck` clean; `pnpm test` all tests passed (3 model-integration tests skipped without `RUN_MODEL_TESTS=1`; count at that time, see `pnpm test` for the current number); `pnpm build` produced the web dist. CAUGHT A DOC BUG: the READMEs told users to run the CLI via `pnpm --filter poltergeist-detector start compare samples/...`, which fails because pnpm runs from the app folder and the Detector's allowed-root is the cwd, so repo-root `samples/...` paths are not found (and absolute paths outside the app dir are rejected by the security check). Fixed both READMEs to `node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/... samples/...` run from the repo root; re-verified report/--json/--help and missing-file exit 1 all work from the clone. Web app: build green; the deployed GitHub Pages URL is the judge path.
   - _Requirements: 1.3, 1.7, 12.4_
 
 - [ ] 35. Demo video (3 minutes or less, YouTube public)
@@ -379,7 +380,7 @@ Checkpoint tasks (8, 14, 18, 23, 27) follow the phase they close. Tasks 30, 31, 
 
 ### Cut order if the schedule slips
 
-1. Requirement 14 (nutrition, Curse Level, Potion Purity)
+1. Requirements 14 to 16 (nutrition, dietary filters, food-relevance check), all stretch
 2. Social post
 3. Blog post
 4. Kiro CLI comparison
