@@ -5,5 +5,12 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['packages/*/src/**/*.test.ts', 'apps/*/src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      // Coverage is reported for the shared skeleton, the part every app depends on.
+      include: ['packages/skeleton/src/**/*.ts'],
+      exclude: ['**/*.test.ts', '**/*.d.ts', '**/test-helpers.ts', '**/stdio-fixture.ts'],
+      reporter: ['text', 'html'],
+    },
   },
 });
