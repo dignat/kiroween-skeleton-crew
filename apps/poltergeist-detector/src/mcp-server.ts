@@ -1,4 +1,3 @@
-#!/usr/bin/env -S node --import tsx
 // Poltergeist Detector MCP server. Declares its two tools (compare_scenes,
 // list_labels) and hands them to the skeleton's serveApp helper, which wires the
 // built-in detect_objects / count_objects and serves over stdio. The CLI and

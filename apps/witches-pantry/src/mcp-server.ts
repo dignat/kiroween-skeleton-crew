@@ -1,4 +1,3 @@
-#!/usr/bin/env -S node --import tsx
 // The Witch's Pantry MCP server (task 21.1). Registers `suggest_recipes` on top
 // of the skeleton's built-in detect_objects / count_objects, using the same
 // suggestRecipes logic and recipe dataset as the web UI (Requirement 6.14).

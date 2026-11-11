@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const raw = readFileSync(fileURLToPath(new URL('../agent-template/app-agent.template.json', import.meta.url)), 'utf8');
+const raw = readFileSync(fileURLToPath(new URL('../../../agent-template/app-agent.template.json', import.meta.url)), 'utf8');
 
 const values: Record<string, string> = {
   APP_NAME: 'demo-app',

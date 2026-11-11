@@ -21,12 +21,12 @@ function bundleForBrowser(entryPoint: string) {
 
 describe('package entry points (Requirement 1.2)', () => {
   it('the browser-safe entry bundles for the browser without any Node module', { timeout: 60_000 }, async () => {
-    const result = await bundleForBrowser(entry('./index.ts'));
+    const result = await bundleForBrowser(entry('../../index.ts'));
     expect(result.errors).toEqual([]);
     expect(result.outputFiles.length).toBeGreaterThan(0);
   });
 
   it('the check can fail: the Node entry does not bundle for the browser', { timeout: 60_000 }, async () => {
-    await expect(bundleForBrowser(entry('./node/index.ts'))).rejects.toThrow(/Could not resolve/);
+    await expect(bundleForBrowser(entry('../../node/index.ts'))).rejects.toThrow(/Could not resolve/);
   });
 });
