@@ -19,11 +19,19 @@ the step-by-step for adding a new tool so it matches the two existing apps.
    `fast-check` for the pure logic, plus an example test or two. Run `pnpm test`.
 
 3. **Register the tool** in the app's `src/mcp-server.ts`:
-   - Import `registerTool`, `jsonResult`/`textResult`, and `z` from `@skeleton-crew/core/node`.
+   - Import `defineTool`, `jsonResult`/`textResult`, and `z` from `@skeleton-crew/core/node`.
    - Build the input schema with that `z` (so it shares the kit's Zod version).
      Keep the schema free of `.transform()` and `.default()`.
-   - Call `registerTool(server, { name, description, inputSchema, handler })`.
+   - Add `defineTool({ name, description, inputSchema, handler })` to the `tools` array
+     that `createServer()` passes to `createAppServer`. `defineTool` keeps each tool's
+     input type; `createAppServer` registers it (via `registerTool`) next to the built-ins.
    - The handler calls the pure function and returns `jsonResult(...)` or `textResult(...)`.
+
+4. **Give the app's agent the tool.** Open `.kiro/agents/<app>.json` and add the tool in
+   three places: `tools` (`@<app>/<tool_name>`), a `permissions.rules` entry
+   (`{ "capability": "mcp", "match": ["<app>/<tool_name>"], "effect": "allow" }`), and the
+   "You can only use these tools" line in the prompt, with one line on when to use it.
+   Without this the server lists the tool but the agent cannot call it.
 
 ## Rules the kit enforces or expects
 
@@ -46,5 +54,6 @@ Use `z.object({})` as the schema. See `list_labels` in
 ## Verify
 
 Run `pnpm typecheck` and `pnpm test`. Then drive the server once over stdio (or the
-MCP Inspector) to confirm `tools/list` shows the new tool and a sample call works.
+MCP Inspector) to confirm `tools/list` shows the new tool and a sample call works, and
+check that the agent's `tools` list matches what `tools/list` returns.
 Do not commit — the user commits.

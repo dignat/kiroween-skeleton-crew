@@ -13,6 +13,7 @@ Skeleton Crew is one reusable detection skeleton (`@skeleton-crew/core`) and two
 | **Agent hooks** | Tests on save, a usage-log entry after each spec task, and a tool-registration check on new files. | `.kiro/hooks/` |
 | **Powers** | Evaluated, none adopted (steering plus the project's own MCP kit covered the need). | [Kiro Powers](#kiro-powers) |
 | **IDE vs CLI** | Custom agents were run in both. The IDE was the reliable surface for agents plus MCP tools. | [Kiro CLI vs IDE](#kiro-cli-vs-ide) |
+| **Kiro Crew** | Not part of the build workflow. Kiro's own `kirocrew*` agents were read once as the reference for the built-in tool names. | [Custom agents](#custom-agents) |
 | **Judgment calls** | Kiro pushed back on medical-advice features and on overclaiming content moderation, and caught a naming collision. | [Where Kiro changed the outcome](#where-kiro-changed-the-outcome) |
 | **Vibe vs spec** | One feature was deliberately built without a spec to compare the two modes. | [Spec vs. vibe coding](#spec-vs-vibe-coding) |
 
@@ -23,6 +24,25 @@ Highlights a reviewer can verify quickly:
 - The `tool-registration-check` hook fired on its own during later work and caught a file that needed wiring as a tool.
 - Spikes run before the design changed the design twice (inference speed, and ingredient chips as the primary input).
 - Property tests (fast-check) found a real bug in how the MCP kit meets the SDK.
+
+## How the pieces fit
+
+Kiro is the AI layer, so the project needs no paid LLM API. A Kiro agent reasons; the app's MCP server gives it on-device detection as tools.
+
+```
+You, in Kiro chat
+   │  pick an agent                      .kiro/agents/<app>.json   (prompt + the only tools it may call)
+   ▼
+App agent ── MCP over stdio ──►  sh apps/<app>/mcp-launch.sh        (loads the right Node, then starts the server)
+                                        ▼
+                                 apps/<app>/src/mcp-server.ts       (createAppServer + defineTool + serveApp)
+                                        ▼  from @skeleton-crew/core/node
+                                 the app's own logic + createDetector(adapter)
+                                        ▼
+                                 TensorFlow.js on your machine (COCO-SSD or MobileNet): no API key, nothing uploaded
+```
+
+The CLI and the web UI call the same app logic directly, so each feature has one implementation behind two or three surfaces (CLI or UI, MCP tool, agent). The two developer agents sit beside this flow: they write files into `apps/` following the steering files, and do not use MCP.
 
 ---
 
@@ -57,7 +77,7 @@ Highlights a reviewer can verify quickly:
 - **Speed:** the vibe feature was much faster to land than a spec task. For something this small and low-risk (a browser-only nicety that fails silently in private mode), the spec overhead would not have paid off.
 - **Quality and safety net:** the spec-driven work carries property tests, requirement traceability, and a design record. The vibe feature has none, so a future refactor of `refresh()` could silently break persistence and no test would catch it.
 - **Fit:** vibe-coding was fine because the feature is isolated (one storage key, two helpers, graceful failure). The core detection/recipe/nutrition logic has real invariants (every image in exactly one group, matched ∪ missing = ingredients, Curse Level monotonicity) that are only trustworthy because the spec forced them into property tests.
-- **A second, bigger case: the nutrition calculator (`calculate_nutrition`, "Cauldron Calculator").** This feature was also built without a spec entry: it has no requirement, design section or task in `.kiro/specs/skeleton-crew/`. It is not the same kind of vibe coding as the localStorage helper, though. The design decisions were made in conversation before any code (including splitting "daily target limits" into a safe version, see "Where Kiro changed the outcome"), and the logic has its own property tests (non-negative totals, scaling, unknown ingredients reported as `missing`). What it lacks is traceability: the spec does not mention it, and the Pantry App_Agent does not list the tool. This is the cost of skipping the spec on a feature with real logic and a new MCP tool: the tests protect the behaviour, but the spec and the agent drifted behind the code.
+- **A second, bigger case: the nutrition calculator (`calculate_nutrition`, "Cauldron Calculator").** This feature was also built without a spec entry: it has no requirement, design section or task in `.kiro/specs/skeleton-crew/`. It is not the same kind of vibe coding as the localStorage helper, though. The design decisions were made in conversation before any code (including splitting "daily target limits" into a safe version, see "Where Kiro changed the outcome"), and the logic has its own property tests (non-negative totals, scaling, unknown ingredients reported as `missing`). What it lacks is traceability: the spec does not mention it, and the Pantry App_Agent deliberately does not list the tool, left out on purpose to show what skipping the spec costs (see "Keeping agents in step with their servers" under Custom agents). This is the cost of skipping the spec on a feature with real logic and a new MCP tool: the tests protect the behaviour, but the spec and the agent drifted behind the code.
 - **Takeaway:** vibe-coding suits small, isolated, low-risk niceties; the spec earns its overhead on anything with invariants, shared logic, or a blast radius. This repo uses both deliberately.
 
 ---
@@ -84,7 +104,7 @@ Highlights a reviewer can verify quickly:
 
 | Agent | Type | What it does |
 | --- | --- | --- |
-| `poltergeist-detector` | App agent (calls MCP) | Compares before/after photos with `compare_scenes`. |
+| `poltergeist-detector` | App agent (calls MCP) | Compares before/after photos with `compare_scenes`; `list_labels` tells the user which 80 object classes it can see. |
 | `witches-pantry` | App agent (calls MCP) | Calls `check_image`, then `suggest_recipes`; follows the "ingredients and amounts only, no medical advice" rule. |
 | `tool-builder` | Developer agent (built-in file/shell tools) | Adds a new MCP tool to an app. |
 | `app-generator` | Developer agent (built-in file/shell tools) | Scaffolds a whole new app from the skeleton. |
@@ -95,6 +115,7 @@ Highlights a reviewer can verify quickly:
 - **`tool-builder`, tested live (task 28.1):** asked to add a `list_labels` tool to the poltergeist-detector app, it read `project-structure.md`, wrote a pure function `coco-labels.ts` with a Vitest test (including a property test that the returned array can't mutate the source), registered a snake_case `list_labels` tool with a Zod schema from `@skeleton-crew/core/node`, and prompted for approval on each write and command. The result followed the steering with no corrections; the tool was kept (returns the 80 COCO class names). The `welcomeMessage` did not display when switching agents in an existing chat (cosmetic; it shows in a fresh chat).
 - **`app-generator`, verified (task 28.3 rehearsal):** following its prompt, it scaffolded a throwaway third app (`shelf-scanner`, one tool `list_shelf`). All seven artifacts were generated (package.json, tsconfig, pure logic + Vitest test, `mcp-server.ts` using the skeleton's `createAppServer`/`defineTool`/`serveApp`, the nvm launcher, and the App_Agent). `pnpm install` and typecheck were clean, tests green, and the server listed `detect_objects`, `count_objects`, `list_shelf` over stdio, all without touching `packages/`. The demo app was then deleted so the repo keeps exactly two real apps. The exercise surfaced one inconsistency that was fixed: the App_Agent template's `mcpServers` command did not match what the prompt and the real agents use (`sh apps/<app>/mcp-launch.sh`), so the template now uses a `{{MCP_LAUNCHER}}` placeholder running `sh`, with its test updated. This is the clearest single demonstration of the "one skeleton, many apps" thesis.
 - **`witches-pantry` agent:** the prompt enforces the "ingredients and amounts only, no medical advice" rule, and was later updated to call `check_image` first and politely decline non-food images.
+- **Keeping agents in step with their servers.** Adding a tool to a server does not give the agent access to it: each agent lists its tools twice (`tools` and `permissions.rules`) and again in its prompt. An audit that compared each agent's `tools` with its server's live `tools/list` found two gaps. `calculate_nutrition` is missing from the Pantry agent on purpose: it was built outside the spec, so it shows what that costs, a working server tool the agent cannot call. `list_labels` was missing from the Poltergeist agent by accident and is fixed. `.kiro/steering/adding-a-tool.md` now has an explicit "give the app's agent the tool" step, so the spec-driven path (`tool-builder`) does not repeat the gap.
 
 ---
 
@@ -110,11 +131,11 @@ Highlights a reviewer can verify quickly:
 
 ### Findings worth reading
 
-- **The nvm launcher (task 17).** The Poltergeist Detector server would not connect; `mcpGateway.log` only said "Connection closed". The server ran fine standalone under Node 22, but Kiro spawns MCP servers in a minimal, non-interactive environment that never runs `nvm use`, so `node` fell through to an old system binary (Node 16/18, via `/usr/local/bin/node` and a leftover Volta shim). Node 16 rejects `--import` outright, so the process died instantly. The machine had three Node managers fighting over PATH (nvm, Volta, a root `/usr/local/bin/node`), and macOS's `path_helper` kept re-prioritising the system one on login shells. Fix: each app ships `mcp-launch.sh`, a POSIX launcher that loads nvm, picks the `.nvmrc` version, and execs the server (nvm chatter to stderr so stdout stays clean); `mcp.json` and the agent run it via `sh`. One launcher per app, no shared root script. The README warns users to make Node 22 the default when they are not on nvm.
-- **Spike A (task 3).** A one-tool MCP server was registered in `.kiro/settings/mcp.json` and called from Kiro. Findings: the server only showed up after a window reload, Kiro runs servers from the workspace root so relative `args` work, and `node --import tsx` runs TypeScript with no build step. A raw stdio check confirmed stdout carries only protocol messages and bad input returns an error result without stopping the server.
-- **Phase 3 (tasks 9 to 14).** Two typing problems came from reading the SDK's own `.d.mts` files: `serveStdio` returns a handle, not a promise, and `registerTool` needs a Standard Schema type that a plain `ZodType` does not satisfy. Checkpoint 14 ran a real server with the real COCO-SSD model over stdio on the sample photos, and showed the model calling a potato a cake at 0.93 confidence, which is why Spike C's "chips first" decision matters.
-- **One function, two surfaces.** Checkpoint 18 ran the CLI end to end on all three sample before/after pairs, then drove the same compare through the MCP `compare_scenes` tool inside Kiro and got the identical result, confirming the CLI and the MCP tool share one `compareScenes` function. As Spike E predicted, the changes COCO-SSD reports between near-identical frames are mostly label flicker, which is why the UI copy and the agent prompt both warn that a lone appeared/vanished is unreliable and only a matched "moved" is trustworthy.
-- **Task 21 (Witch's Pantry server + agent).** The server registers `suggest_recipes` alongside the built-in tools and reuses the exact `suggestRecipes` function and recipe dataset the web UI uses. Driven live in Kiro through the `witches-pantry` agent, `suggest_recipes(["onion","garlic","tomato"])` returned 21 potions best-match-first, with Crimson Hex Soup top.
+- **The nvm launcher.** The Poltergeist Detector server would not connect; `mcpGateway.log` only said "Connection closed". The server ran fine standalone under Node 22, but Kiro spawns MCP servers in a minimal, non-interactive environment that never runs `nvm use`, so `node` fell through to an old system binary (Node 16/18, via `/usr/local/bin/node` and a leftover Volta shim). Node 16 rejects `--import` outright, so the process died instantly. The machine had three Node managers fighting over PATH (nvm, Volta, a root `/usr/local/bin/node`), and macOS's `path_helper` kept re-prioritising the system one on login shells. Fix: each app ships `mcp-launch.sh`, a POSIX launcher that loads nvm, picks the `.nvmrc` version, and execs the server (nvm chatter to stderr so stdout stays clean); `mcp.json` and the agent run it via `sh`. One launcher per app, no shared root script. The README warns users to make Node 22 the default when they are not on nvm.
+- **First server, and what Kiro needs to see it.** A one-tool MCP server was registered in `.kiro/settings/mcp.json` and called from Kiro. Findings: the server only showed up after a window reload, Kiro runs servers from the workspace root so relative `args` work, and `node --import tsx` runs TypeScript with no build step. A raw stdio check confirmed stdout carries only protocol messages and bad input returns an error result without stopping the server.
+- **Building against the real SDK.** Two typing problems came from reading the SDK's own `.d.mts` files: `serveStdio` returns a handle, not a promise, and `registerTool` needs a Standard Schema type that a plain `ZodType` does not satisfy. Running a real server with the real COCO-SSD model over stdio on the sample photos showed the model calling a potato a cake at 0.93 confidence, which is why Spike C's "chips first" decision matters.
+- **One function, two surfaces.** Running the CLI end to end on all three sample before/after pairs, then driving the same compare through the MCP `compare_scenes` tool inside Kiro, gave the identical result, confirming the CLI and the MCP tool share one `compareScenes` function. As Spike E predicted, the changes COCO-SSD reports between near-identical frames are mostly label flicker, which is why the UI copy and the agent prompt both warn that a lone appeared/vanished is unreliable and only a matched "moved" is trustworthy.
+- **Driving the Pantry server from its agent.** The server registers `suggest_recipes` alongside the built-in tools and reuses the exact `suggestRecipes` function and recipe dataset the web UI uses. Driven live in Kiro through the `witches-pantry` agent, `suggest_recipes(["onion","garlic","tomato"])` returned 21 potions best-match-first, with Crimson Hex Soup top.
 - **Sharpening the "one skeleton" thesis (`serveApp`).**  The rule-respecting version added `createAppServer` / `serveApp` / `defineTool` to `@skeleton-crew/core/node`. Each app's `mcp-server.ts` is now a declaration (its name, detector, and a list of `defineTool({...})` entries) handed to the skeleton, which wires the built-in tools and registration. Typing detail: a mixed array of tools with different Zod schemas needs `defineTool` (an identity function) to pin each tool's inferred input type. Behaviour unchanged, 160 tests green.
 - **Warm-up investigation (performance).** Added an optional `warmUp` flag to both model adapters to run one throwaway inference at `load()` time, expecting it to hide first-call latency. Measured on the real COCO model: on the Node CPU backend there was no per-call speedup (both ~6.5 s); it only moved ~4.4 s of work into `load()`. That benefit is specific to the browser's WebGL backend, so the default is `warmUp: false` and only the web app opts in. The lesson: measuring beat assuming.
 
@@ -144,7 +165,7 @@ Highlights a reviewer can verify quickly:
 
 ## Kiro CLI vs IDE
 
-**Summary:** the build ran in the Kiro IDE. Custom agents were also run from the Kiro CLI (`kiro-cli` 2.35.2) to compare. The IDE was the reliable surface for custom agents plus MCP tools. Kiro Web and Crew were not used for this project.
+**Summary:** the build ran in the Kiro IDE. Custom agents were also run from the Kiro CLI (`kiro-cli` 2.35.2) to compare. The IDE was the reliable surface for custom agents plus MCP tools. Kiro Web and Kiro Crew were not part of the build workflow. The only link to Crew is indirect: Kiro's own `~/.kiro/agents/kirocrew*.json` agents were read as the reference for the built-in tool names when writing the developer agents (see Custom agents).
 
 - `kiro-cli agent list` discovers all four workspace agents, each tagged "Workspace (v3 format)", so the CLI reads the same `.kiro/agents/` files the IDE does.
 - The engine flag matters. `kiro-cli chat --agent poltergeist-detector` failed with "Mode 'poltergeist-detector' not found" on the default engine; adding `--v3` launched the agent.

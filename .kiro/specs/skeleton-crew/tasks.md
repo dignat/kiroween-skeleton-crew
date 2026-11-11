@@ -10,11 +10,13 @@ Deadline: **4 December 2026**. Target submission date: **Wednesday 2 December**,
 
 ### Phase 0: Already done
 
-- [x] 0.1 Requirements and design written and reviewed
-- [x] 0.2 Node pinned to 22.23.0 in `.nvmrc`, `engines.node` set (tightened to `>=22.12.0` in task 1, because Vitest 5 needs it)
-- [x] 0.3 pnpm pinned to 10.34.9 in `package.json`
-- [x] 0.4 `AGENTS.md` updated with project rules, `KIRO_USAGE.md` started
-- [x] 0.5 Unrelated file moved out of the repo
+- [x] 0. Foundations already in place
+
+  - [x] 0.1 Requirements and design written and reviewed
+  - [x] 0.2 Node pinned to 22.23.0 in `.nvmrc`, `engines.node` set (tightened to `>=22.12.0` in task 1, because Vitest 5 needs it)
+  - [x] 0.3 pnpm pinned to 10.34.9 in `package.json`
+  - [x] 0.4 `AGENTS.md` updated with project rules, `KIRO_USAGE.md` started
+  - [x] 0.5 Unrelated file moved out of the repo
 
 ### Phase 1: Workspace setup (week 1)
 
@@ -122,14 +124,15 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 - [x] 14. Checkpoint: run the built-in tools through the MCP Inspector on a sample image, then update `KIRO_USAGE.md`
 
-### Phase 4: Poltergeist Detector CLI (week 2)
 
-- [x] 14.1 Spike E: scene comparison on real photos (blocks task 15; called 14a in the dependency graph)
-  - Take two photos of the same desk or shelf from the same spot (a phone propped on a book works), then move two or three objects between them and remove one. Save them as your own photos in `samples/` (for example `desk-before.jpg` and `desk-after.jpg`), with no brand names, logos, people, or screens showing anything personal
-  - Run COCO-SSD on both and list what it detects. Check three things: does it find the same objects in both photos when nothing changed, how far do box centres drift between two photos of an unchanged scene, and does a moved object keep its label
-  - Take a third photo of the unchanged desk from the same spot and compare it with the first. The result should report nothing, and anything it does report is a false change that the thresholds must absorb
-  - Decision: set the default `moveTolerance` and confidence threshold from the measured drift, and record in `design.md` whether the idea works. If the false changes are too many to fix with thresholds, the fallback is to compare counts per label only (appeared and vanished, no "moved")
-  - _Requirements: 5.1, 5.3, 5.6_
+  - [x] 14.1 Spike E: scene comparison on real photos (blocks task 15; called 14a in the dependency graph)
+    - Take two photos of the same desk or shelf from the same spot (a phone propped on a book works), then move two or three objects between them and remove one. Save them as your own photos in `samples/` (for example `desk-before.jpg` and `desk-after.jpg`), with no brand names, logos, people, or screens showing anything personal
+    - Run COCO-SSD on both and list what it detects. Check three things: does it find the same objects in both photos when nothing changed, how far do box centres drift between two photos of an unchanged scene, and does a moved object keep its label
+    - Take a third photo of the unchanged desk from the same spot and compare it with the first. The result should report nothing, and anything it does report is a false change that the thresholds must absorb
+    - Decision: set the default `moveTolerance` and confidence threshold from the measured drift, and record in `design.md` whether the idea works. If the false changes are too many to fix with thresholds, the fallback is to compare counts per label only (appeared and vanished, no "moved")
+    - _Requirements: 5.1, 5.3, 5.6_
+
+### Phase 4: Poltergeist Detector CLI (week 2)
 
 - [x] 15. App logic
   - [x] 15.1 `compareScenes` pure function as described in `design.md`: match Detections per label by normalized box-centre distance, then report appeared, vanished, moved and unchanged
@@ -233,14 +236,14 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 - [x]* 27. Checkpoint: review every tip and label against the wording rule, then update `KIRO_USAGE.md`
 
-- [x]* 27a. Dietary preference filters (stretch, Requirement 15)
-  - Added after the nutrition feature at the user's request. A request for health-condition / weight-loss / post-fasting advice was declined as medical advice and reshaped into objective preference filters that describe the recipe, not the person: vegetarian, lowerSugar, lowerSodium, higherFibre, higherProtein, lighter.
-  - `dietary-filters.ts` (pure predicates + documented thresholds), wired into `suggestRecipes` (AND before sort), the web UI (accessible checkbox group + neutral description line + extended disclaimer), and the `suggest_recipes` MCP tool (optional `filters` array). 10 property + example tests; 150 tests pass; verified over stdio (23 → 8 for vegetarian+lighter).
-  - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6_
+  - [x]* 27.1 Dietary preference filters (stretch, Requirement 15)
+    - Added after the nutrition feature at the user's request. A request for health-condition / weight-loss / post-fasting advice was declined as medical advice and reshaped into objective preference filters that describe the recipe, not the person: vegetarian, lowerSugar, lowerSodium, higherFibre, higherProtein, lighter.
+    - `dietary-filters.ts` (pure predicates + documented thresholds), wired into `suggestRecipes` (AND before sort), the web UI (accessible checkbox group + neutral description line + extended disclaimer), and the `suggest_recipes` MCP tool (optional `filters` array). 10 property + example tests; 150 tests pass; verified over stdio (23 → 8 for vegetarian+lighter).
+    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6_
 
-- [x]* 27b. Food-relevance guardrail (stretch, Requirement 16)
-  - A request to guard against harmful/inappropriate uploads was reshaped (declined as content-moderation the on-device model can't honestly do) into a food-relevance check. `food-relevance.ts` + a `check_image` MCP tool + a web-UI gate + the Pantry agent calling it first. 7 property + example tests (incl. the decline message has no medical/harm wording); 160 tests pass. Honesty enforced in tool/agent/UI/comments: relevance only, not moderation.
-  - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
+  - [x]* 27.2 Food-relevance guardrail (stretch, Requirement 16)
+    - A request to guard against harmful/inappropriate uploads was reshaped (declined as content-moderation the on-device model can't honestly do) into a food-relevance check. `food-relevance.ts` + a `check_image` MCP tool + a web-UI gate + the Pantry agent calling it first. 7 property + example tests (incl. the decline message has no medical/harm wording); 160 tests pass. Honesty enforced in tool/agent/UI/comments: relevance only, not moderation.
+    - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
 
 ### Phase 7: Kiro layer (build as soon as the pattern is stable, finish in week 4)
 
@@ -366,6 +369,28 @@ flowchart TD
     T34 --> T35
     T35 --> T37[37. Devpost submission]
     T36[36. Write-up and posts] --> T37
+```
+
+```json
+{
+  "waves": [
+    { "id": 0, "tasks": ["1", "7", "36"] },
+    { "id": 1, "tasks": ["2", "3", "4", "5", "6"] },
+    { "id": 2, "tasks": ["9"] },
+    { "id": 3, "tasks": ["10"] },
+    { "id": 4, "tasks": ["11"] },
+    { "id": 5, "tasks": ["12"] },
+    { "id": 6, "tasks": ["13"] },
+    { "id": 7, "tasks": ["14.1", "19"] },
+    { "id": 8, "tasks": ["15", "20", "21", "24"] },
+    { "id": 9, "tasks": ["16", "22", "25"] },
+    { "id": 10, "tasks": ["17", "26"] },
+    { "id": 11, "tasks": ["28", "32"] },
+    { "id": 12, "tasks": ["29", "34"] },
+    { "id": 13, "tasks": ["35"] },
+    { "id": 14, "tasks": ["37"] }
+  ]
+}
 ```
 
 Checkpoint tasks (8, 14, 18, 23, 27) follow the phase they close. Tasks 30, 31, and 33 have no hard dependencies and fit in whenever there is time, before task 37.
