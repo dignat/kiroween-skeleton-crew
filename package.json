@@ -1,7 +1,7 @@
 {
-  "name": "skeleton-crew",
+  "name": "@skeleton-crew/anything-you-can-do",
   "version": "0.1.0",
-  "description": "Kiroween Skeleton Crew: a reusable object detection skeleton with an MCP server kit, and two apps built on it.",
+  "description": "Kiroween Skeleton Crew Anything You Can Do: a reusable object detection skeleton with an MCP server kit, and two apps built on it.",
   "private": true,
   "type": "module",
   "license": "MIT",

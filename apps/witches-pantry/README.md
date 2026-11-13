@@ -1,6 +1,6 @@
 # 🔮 The Witch's Pantry
 
-A web app that looks at a photo of your ingredients and suggests recipes — themed as potions. Part of [The Skeleton Crew](../../README.md), built on `@skeleton-crew/core`.
+A web app that looks at a photo of your ingredients and suggests recipes — themed as potions. Part of [The Skeleton Crew Anything You Can Do](../../README.md), built on `@skeleton-crew/core`.
 
 **Live app:** https://dignat.github.io/kiroween-skeleton-crew/
 

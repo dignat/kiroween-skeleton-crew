@@ -1,4 +1,4 @@
-# 🦴 The Skeleton Crew
+The Skeleton Crew Anything You Can Do
 
 A reusable **object-detection skeleton** with a built-in **MCP server kit**, and **two apps built on it** — a spooky CLI and a Halloween-themed web app. Kiroween Hackathon 2026, *Skeleton Crew* category.
 
