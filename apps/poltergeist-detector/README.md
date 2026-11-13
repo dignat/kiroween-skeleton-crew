@@ -1,6 +1,6 @@
 # 👻 Poltergeist Detector
 
-A CLI that compares two photos of the same place and reports what a poltergeist **moved, took, or left behind**. Part of [The Skeleton Crew](../../README.md), built on `@skeleton-crew/core`.
+A CLI that compares two photos of the same place and reports what a poltergeist **moved, took, or left behind**. Part of [The Skeleton Crew Anything You Can Do](../../README.md), built on `@skeleton-crew/core`.
 
 Point it at a "before" and an "after" photo taken from the same spot, and it prints a haunting report: what **appeared**, what **vanished**, what **moved**, and what stayed put.
 
