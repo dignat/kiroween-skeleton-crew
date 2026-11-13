@@ -2,8 +2,11 @@
 // Poltergeist Detector CLI (task 16.1). Results go to stdout, progress to stderr.
 // Exit code 1 for a missing/unsupported photo or a bad argument.
 
-import { resolve } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import type { DetectOptions } from '@skeleton-crew/core';
+import { createNodeImageDecoder } from '@skeleton-crew/core/node';
+import { LEGEND, renderComparisonPng } from './annotate-scenes.js';
 import { parseCliArgs, USAGE, type CompareCommand } from './cli-args.js';
 import { compareScenes } from './compare-scenes.js';
 import { createCocoDetector, createImageSizer } from './detector.js';
@@ -29,6 +32,19 @@ async function runCompare(cmd: CompareCommand): Promise<string> {
   const { before, after } = await loadScenes(detector, getSize, beforePath, afterPath, options);
 
   const comparison = compareScenes(before, after, { moveTolerance: cmd.tolerance });
+
+  if (cmd.outPath !== undefined) {
+    const outPath = resolve(cmd.outPath);
+    const decode = createNodeImageDecoder({ allowedRoot: process.cwd() });
+    const [beforePixels, afterPixels] = [
+      await decode({ kind: 'filePath', path: beforePath }),
+      await decode({ kind: 'filePath', path: afterPath }),
+    ];
+    await mkdir(dirname(outPath), { recursive: true });
+    await writeFile(outPath, renderComparisonPng(beforePixels, afterPixels, comparison));
+    process.stderr.write(`Annotated image written to ${outPath}\nLegend: ${LEGEND}\n`);
+  }
+
   return cmd.json ? formatJson(comparison) : formatHauntingReport(comparison);
 }
 

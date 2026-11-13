@@ -47,7 +47,13 @@ importers:
       '@skeleton-crew/core':
         specifier: workspace:*
         version: link:../../packages/skeleton
+      pngjs:
+        specifier: 7.0.0
+        version: 7.0.0
     devDependencies:
+      '@types/pngjs':
+        specifier: 6.0.5
+        version: 6.0.5
       tsx:
         specifier: 4.23.15
         version: 4.23.15

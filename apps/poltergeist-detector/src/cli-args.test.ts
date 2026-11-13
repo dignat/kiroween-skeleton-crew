@@ -20,6 +20,12 @@ describe('parseCliArgs', () => {
     });
   });
 
+  it('parses --out and requires a .png file', () => {
+    const cmd = parseCliArgs(['compare', 'a.jpg', 'b.jpg', '--out', 'report.png']);
+    expect(cmd).toMatchObject({ kind: 'compare', outPath: 'report.png' });
+    expect(() => parseCliArgs(['compare', 'a.jpg', 'b.jpg', '--out', 'report.txt'])).toThrow(CliArgsError);
+  });
+
   it('returns a help command for --help', () => {
     expect(parseCliArgs(['--help'])).toEqual({ kind: 'help' });
   });
