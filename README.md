@@ -10,6 +10,29 @@ One template. Two very different apps. Every app's CLI/UI and its Kiro agent sha
 
 **Live web app:** https://dignat.github.io/kiroween-skeleton-crew/
 
+## Try it in 2 minutes (for judges)
+
+**Witch's Pantry:** open the live link above. No install.
+
+**Poltergeist Detector (CLI):** needs Node 22 and pnpm.
+
+```bash
+nvm use && pnpm install
+pnpm demo:poltergeist
+```
+
+This compares a bundled before/after pair from `samples/`, prints the haunting report, and writes `demo-output/haunting-report.png`: the two photos side by side with the findings boxed (green = appeared, red = vanished, amber = moved, blue = unchanged). The first run downloads the COCO-SSD model. The CLI is a general tool: add `--out report.png` to any `compare` command to get the same image for your own photos.
+
+**Through Kiro (the AI layer of both apps):** open this folder in Kiro, reload the window so it picks up `.kiro/settings/mcp.json`, then switch agent and paste a prompt.
+
+| Agent | Prompt to paste |
+| --- | --- |
+| `poltergeist-detector` | `Compare samples/before_tomatoes.jpg and samples/after_tomatoes.jpg and tell me what the poltergeist did.` |
+| `witches-pantry` | `Check samples/fridge-salad-drawer.jpg is food, then suggest potions I can brew from what you can see.` |
+| `app-generator` | `Create a cli app called shelf-scanner with one tool list_shelf.` (or `web`, or `mcp-only`) |
+
+The detector is a small on-device model, so results on casual photos can flicker. A lone "appeared" or "vanished" is a hint, and "moved" is the most trustworthy finding. Large, clearly separated objects (cup, bottle, book, laptop) photographed from the same spot work best.
+
 > Detection runs entirely on-device with TensorFlow.js — no paid services, no API keys. Kiro is the only AI layer: custom agents call each app's own MCP tools.
 
 ---
@@ -114,8 +137,8 @@ The skeleton is used **from inside this repo** — it's a workspace package (`@s
 
 1. Clone the repo, run `nvm use` (Node 22) and `pnpm install` at the root.
 2. Open it in Kiro and switch to the **app-generator** agent.
-3. Tell it the new app's **name** and its one **MCP tool** (snake_case) — for example, "create an app called `shelf-scanner` with one tool `list_shelf`". You don't give it a path; it writes `apps/<name>/` and `.kiro/agents/<name>.json` by convention.
-4. It scaffolds the whole app (package.json, tsconfig, logic + test, `mcp-server.ts` using the skeleton's `createAppServer`/`defineTool`/`serveApp`, the nvm launcher, and the App_Agent), runs install + typecheck + tests, and prints the `.kiro/settings/mcp.json` block for you to paste (it's intentionally not allowed to edit that file itself).
+3. Tell it the new app's **name**, its one **MCP tool** (snake_case) and its **interface**: `mcp-only`, `cli` (like the Poltergeist Detector) or `web` (like the Witch's Pantry). For example, "create a `cli` app called `shelf-scanner` with one tool `list_shelf`". If you leave the interface out, it asks. You don't give it a path; it writes `apps/<name>/` and `.kiro/agents/<name>.json` by convention.
+4. It scaffolds the whole app (package.json, tsconfig, logic + test, `mcp-server.ts` using the skeleton's `createAppServer`/`defineTool`/`serveApp`, the nvm launcher, and the App_Agent, plus the CLI files or the Vite web UI if you chose one), runs install + typecheck + tests (and a build for `web`), and prints the `.kiro/settings/mcp.json` block for you to paste (it's intentionally not allowed to edit that file itself).
 
 The generated app depends on the skeleton through `workspace:*` and never modifies `packages/` — new apps live entirely under `apps/`.
 

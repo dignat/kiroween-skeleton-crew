@@ -12,6 +12,8 @@ export interface CompareCommand {
   beforePath: string;
   afterPath: string;
   json: boolean;
+  /** Where to write the annotated before | after PNG, if requested. */
+  outPath?: string;
   minConfidence?: number;
   tolerance?: number;
 }
@@ -33,6 +35,9 @@ book, laptop, ...), so frame-filling, straight-on subjects work best.
 
 Options:
   --json                    Print the result as JSON instead of a report.
+  --out <file.png>          Also write an image of the two photos side by side
+                            with the findings boxed: green = appeared,
+                            red = vanished, amber = moved, blue = unchanged.
   --min-confidence <0..1>   Ignore detections below this confidence (default 0.5).
   --tolerance <0..1>        Max normalized centre drift still counted as
                             "unchanged" (default 0.05). Above it, an object moved.
@@ -41,6 +46,7 @@ Options:
 Examples:
   poltergeist-detector compare desk-before.jpg desk-after.jpg
   poltergeist-detector compare a.jpg b.jpg --json --tolerance 0.08
+  poltergeist-detector compare a.jpg b.jpg --out haunting-report.png
 `;
 
 function parseUnitInterval(raw: string, flag: string): number {
@@ -60,6 +66,7 @@ export function parseCliArgs(argv: readonly string[]): Command {
       allowPositionals: true,
       options: {
         json: { type: 'boolean', default: false },
+        out: { type: 'string' },
         'min-confidence': { type: 'string' },
         tolerance: { type: 'string' },
         help: { type: 'boolean', default: false },
@@ -98,6 +105,12 @@ export function parseCliArgs(argv: readonly string[]): Command {
     afterPath,
     json: values.json ?? false,
   };
+  if (values.out !== undefined) {
+    if (!values.out.toLowerCase().endsWith('.png')) {
+      throw new CliArgsError(`--out must be a .png file, got "${values.out}".`);
+    }
+    result.outPath = values.out;
+  }
   if (values['min-confidence'] !== undefined) {
     result.minConfidence = parseUnitInterval(values['min-confidence'], '--min-confidence');
   }
