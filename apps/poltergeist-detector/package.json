@@ -14,7 +14,9 @@
     "mcp": "node --import tsx src/mcp-server.ts"
   },
   "dependencies": {
-    "@skeleton-crew/core": "workspace:*",
+    "@skeleton-playground/core": "workspace:*",
+    "@tensorflow-models/coco-ssd": "2.2.3",
+    "@tensorflow/tfjs": "4.22.0",
     "pngjs": "7.0.0"
   },
   "devDependencies": {

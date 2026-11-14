@@ -1,4 +1,4 @@
-import type { Detection, DetectOptions, Detector, DetectorImageInput } from '@skeleton-crew/core';
+import type { Detection, DetectOptions, Detector, DetectorImageInput } from '@skeleton-playground/core';
 import { SceneLoadError } from './errors/index.js';
 
 /**

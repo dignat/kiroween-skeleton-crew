@@ -4,8 +4,8 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import type { DetectOptions } from '@skeleton-crew/core';
-import { createNodeImageDecoder } from '@skeleton-crew/core/node';
+import type { DetectOptions } from '@skeleton-playground/core';
+import { createNodeImageDecoder } from '@skeleton-playground/core/node';
 import { LEGEND, renderComparisonPng } from './annotate-scenes.js';
 import { parseCliArgs, USAGE, type CompareCommand } from './cli-args.js';
 import { compareScenes } from './compare-scenes.js';

@@ -1,7 +1,7 @@
 // Node-only. Builds the COCO-SSD detector and an image sizer shared by the CLI
 // and the MCP server, so both surfaces detect identically (Requirements 5.10).
-import { createCocoSsdAdapter, createDetector, type Detector, type DetectorImageInput } from '@skeleton-crew/core';
-import { createNodeImageDecoder } from '@skeleton-crew/core/node';
+import { createCocoSsdAdapter, createDetector, type Detector, type DetectorImageInput } from '@skeleton-playground/core';
+import { createNodeImageDecoder } from '@skeleton-playground/core/node';
 import type { ImageSizer } from './load-scenes.js';
 
 /**

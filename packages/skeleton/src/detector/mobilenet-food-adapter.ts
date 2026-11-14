@@ -1,5 +1,6 @@
-import * as mobilenet from '@tensorflow-models/mobilenet';
-import * as tf from '@tensorflow/tfjs';
+import type * as mobilenet from '@tensorflow-models/mobilenet';
+import type * as TF from '@tensorflow/tfjs';
+import { importOptionalPeer } from './optional-peer.js';
 import type { ModelAdapter } from './model-adapter.js';
 import type { ImageDecoder } from './pixel-image.js';
 import type { Detection, DetectorImageInput } from './types.js';
@@ -51,6 +52,13 @@ export interface MobileNetFoodAdapterOptions {
    * A warm-up failure never breaks load().
    */
   warmUp?: boolean;
+  /**
+   * Where to load the model files from (the URL of a `model.json`). Default: the publisher's
+   * hosted copy at tfhub.dev, downloaded on first use. Set this to host the files yourself, for
+   * example on your own server or CDN, to work offline or to pin a copy. It must be a MobileNet
+   * v2 model with the same input and output shape.
+   */
+  modelUrl?: string;
 }
 
 /**
@@ -65,13 +73,14 @@ export function createMobileNetFoodAdapter(options: MobileNetFoodAdapterOptions)
   const topK = options.topK ?? 10;
   const warmUp = options.warmUp ?? false;
   let model: mobilenet.MobileNet | undefined;
+  let tf: typeof import('@tensorflow/tfjs') | undefined;
 
   /**
    * Primes the backend with one classification on a small blank image. Any error
    * is swallowed and logged to stderr: warm-up is an optimization, not correctness.
    */
-  async function warmUpOnce(loaded: mobilenet.MobileNet): Promise<void> {
-    const dummy = tf.zeros([32, 32, 3], 'int32') as tf.Tensor3D;
+  async function warmUpOnce(loaded: mobilenet.MobileNet, tfjs: typeof import('@tensorflow/tfjs')): Promise<void> {
+    const dummy = tfjs.zeros([32, 32, 3], 'int32') as TF.Tensor3D;
     try {
       await loaded.classify(dummy, topK);
     } catch (error) {
@@ -86,15 +95,17 @@ export function createMobileNetFoodAdapter(options: MobileNetFoodAdapterOptions)
     defaultMinConfidence,
 
     async load(): Promise<void> {
+      tf = await importOptionalPeer('@tensorflow/tfjs', 'mobilenet-food', () => import('@tensorflow/tfjs'), '@tensorflow-models/mobilenet');
+      const net = await importOptionalPeer('@tensorflow-models/mobilenet', 'mobilenet-food', () => import('@tensorflow-models/mobilenet'), '@tensorflow/tfjs');
       await tf.ready();
-      model = await mobilenet.load({ version: 2, alpha: 1.0 });
+      model = await net.load({ version: 2, alpha: 1.0, ...(options.modelUrl === undefined ? {} : { modelUrl: options.modelUrl }) });
       if (warmUp) {
-        await warmUpOnce(model);
+        await warmUpOnce(model, tf);
       }
     },
 
     async infer(image: DetectorImageInput): Promise<Detection[]> {
-      if (!model) throw new Error('mobilenet-food adapter: infer() called before load()');
+      if (!model || !tf) throw new Error('mobilenet-food adapter: infer() called before load()');
       const pixels = await decodeImage(image);
       const tensor = tf.browser.fromPixels(pixels, 3);
       try {

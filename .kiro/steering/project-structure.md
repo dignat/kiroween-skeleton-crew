@@ -11,12 +11,12 @@ inclusion: always
 - Tests: Vitest for unit tests and `fast-check` for property-based tests. Run with `pnpm test` (`vitest run`). Typecheck with `pnpm typecheck`.
 - Detection: TensorFlow.js (COCO-SSD and a MobileNet-style food classifier) behind a `ModelAdapter`.
 - MCP: each app runs its own stdio MCP server. Kiro custom agents call it. No paid APIs.
-- MCP launch: each app owns a POSIX launcher `apps/<app>/mcp-launch.sh` that loads nvm, selects the `.nvmrc` Node, and execs `node --import tsx` on its own server (all nvm output to stderr). `mcp.json` and agents run it as `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. One launcher per app, no shared root launcher. The launcher `cd`s to the app's own folder, never the repo root, and the server reads images only from `samples/` (found from its own file location, override with `MCP_IMAGES_DIR`), never from `process.cwd()`. Kiro spawns servers without `nvm use`, so a bare `node` command would use the wrong Node version.
+- MCP launch: each app owns a POSIX launcher `apps/<app>/mcp-launch.sh` that loads nvm, selects the `.nvmrc` Node, and execs `node --import tsx` on its own server (all nvm output to stderr). `mcp.json` and agents run it as `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. One launcher per app, no shared root launcher. The launcher `cd`s to the app's own folder, never the repo root, and the server reads images only from `samples/` (found from its own file location, override with `MCP_IMAGES_DIR`), never from `process.cwd()`. The launcher is POSIX shell, so MCP integration targets macOS, Linux and WSL; plain Windows is a known gap (documented in README). Kiro spawns servers without `nvm use`, so a bare `node` command would use the wrong Node version.
 
 ## Layout
 
 ```
-packages/skeleton/        shared template (package name @skeleton-crew/core)
+packages/skeleton/        shared template (package name @skeleton-playground/core)
 apps/poltergeist-detector/  CLI before/after scene comparison
 apps/witches-pantry/      web UI, food detection and recipes
 samples/                  own photos only
@@ -29,7 +29,7 @@ Tests sit next to the code as `*.test.ts` under `src/`.
 
 - `packages/skeleton` knows nothing about photos, recipes, or any single app.
 - Apps never edit files under `packages/`. App-specific logic lives in the app folder.
-- Apps import the skeleton through `@skeleton-crew/core` (`workspace:*`).
+- Apps import the skeleton through `@skeleton-playground/core` (`workspace:*`).
 - The browser-safe entry point must not import Node modules (`fs`, `path`, etc.). Node-only code (image loading, MCP server kit) goes in the Node entry point.
 - Each app's CLI or UI and its MCP tools call the same app logic. Do not duplicate it.
 

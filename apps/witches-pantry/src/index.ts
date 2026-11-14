@@ -1,7 +1,7 @@
 // The Witch's Pantry: app logic entry point.
 // The web UI (task 20) and the suggest_recipes MCP tool (task 21) both use this logic.
 
-import { SKELETON_NAME } from '@skeleton-crew/core';
+import { SKELETON_NAME } from '@skeleton-playground/core';
 
 export const APP_NAME = 'witches-pantry';
 export const BUILT_ON = SKELETON_NAME;

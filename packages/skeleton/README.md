@@ -1,72 +1,134 @@
-# @skeleton-crew/core
+# @skeleton-playground/core
 
-The shared skeleton for AI-integrated object detection apps. It holds a detection core and a
-Model Context Protocol (MCP) server kit. It knows nothing about photos, recipes or any single app.
+A small TypeScript kit for AI-integrated object detection apps. It gives you:
 
-Apps depend on it as `"@skeleton-crew/core": "workspace:*"` and never edit files in this folder.
+- a **detection core** with a swappable model adapter (COCO-SSD for objects with boxes, MobileNet for whole-image food labels), running on-device with TensorFlow.js;
+- a **safe image loader** for Node that only reads JPEG and PNG files from a folder you choose;
+- an **MCP server kit** (Model Context Protocol, over stdio) that comes with `detect_objects` and `count_objects` and lets you add your own tools, so an agent such as Kiro can call your app;
+- copy-in **templates** for a Kiro agent, an MCP launcher script and a read-only security reviewer agent.
 
-## What is inside
+It knows nothing about any one app. It was built for the Kiroween hackathon, with two example apps in the [repository](https://github.com/dignat/kiroween-skeleton-crew).
 
-| Part | What it gives you |
+## Install
+
+```bash
+pnpm add --save-exact @skeleton-playground/core
+```
+
+That installs the MCP server kit and the image loader only (about 17 MB). The detection models need TensorFlow.js, which is an **optional peer dependency** (about 265 MB), so install what you use:
+
+```bash
+# COCO-SSD: objects with bounding boxes
+pnpm add --save-exact @tensorflow/tfjs @tensorflow-models/coco-ssd
+# MobileNet: whole-image food labels
+pnpm add --save-exact @tensorflow/tfjs @tensorflow-models/mobilenet
+```
+
+If one is missing, the adapter's `load()` throws an error that names the package and the command to install it. Apps that use their own adapter never need TensorFlow.js.
+
+Needs Node 22.12 or newer. The package is ESM only and ships compiled JavaScript with type declarations, so you do not need `tsx` to use it.
+
+**Good to know before you install**
+- Model weights are **downloaded the first time a model loads**, from `storage.googleapis.com` (COCO-SSD) and `tfhub.dev` (MobileNet). The first run needs internet access. The weights are not bundled, pinned or hash-checked.
+- To work offline or pin a copy, host the model files yourself and pass `modelUrl` (the URL of a `model.json`) to `createCocoSsdAdapter` or `createMobileNetFoodAdapter`. Download the files once from the publisher, put them on your own server or CDN, and use an `http(s)` URL.
+- The package itself is plain Node and has not been tested on Windows. Only the launcher template is known to be POSIX-only.
+- Detection runs on TensorFlow.js's pure JavaScript backend by default, about 5 seconds per image on a laptop for COCO-SSD. `@tensorflow/tfjs-node` is a faster optional backend you can install yourself.
+
+## Quick start: an MCP server with one tool
+
+Install the core package and the COCO-SSD packages from the commands above. Put a few JPEG or PNG files in an `images/` folder next to this file, as `server.mjs`:
+
+```js
+import { fileURLToPath } from 'node:url';
+import { createCocoSsdAdapter, createDetector } from '@skeleton-playground/core';
+import { createAppServer, createNodeImageDecoder, defineTool, jsonResult, serveApp, z } from '@skeleton-playground/core/node';
+
+// The ONLY folder the server may read images from. Required, and no default.
+const IMAGES_DIR = process.env.MY_IMAGES_DIR ?? fileURLToPath(new URL('./images', import.meta.url));
+
+function createServer() {
+  const decodeImage = createNodeImageDecoder({ allowedRoot: IMAGES_DIR });
+  const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
+  return createAppServer({
+    name: 'my-app',
+    version: '0.1.0',
+    detector, // adds detect_objects and count_objects
+    tools: [
+      defineTool({
+        name: 'has_object', // snake_case
+        description: 'Say whether an image contains a given object label, for example "cat".',
+        inputSchema: z.object({ imagePath: z.string(), label: z.string() }),
+        handler: async ({ imagePath, label }) => {
+          const detections = await detector.detect({ kind: 'filePath', path: imagePath });
+          return jsonResult({ label, found: detections.some((d) => d.label === label) });
+        },
+      }),
+    ],
+  });
+}
+
+serveApp('my-app', createServer); // serves over stdio
+```
+
+Run it with `node server.mjs`. It waits for an MCP client on stdin and stdout. To connect Kiro, add it to `.kiro/settings/mcp.json`:
+
+```json
+{ "mcpServers": { "my-app": { "command": "node", "args": ["server.mjs"] } } }
+```
+
+Kiro starts servers with whatever `node` is first on its PATH, which may be too old. If you use nvm and see "Connection closed", use the launcher template below instead of calling `node` directly. The launcher template is a POSIX shell script, so it works on macOS, Linux and WSL but **not on plain Windows** (no `sh`, no `nvm.sh`). On Windows, call `node` directly as above and make sure Node 22.12 or newer is your default `node`.
+
+## Entry points
+
+| Import | What it is |
 |---|---|
-| Detection core | `createDetector` (returns a `Detector`), `Detection`, `ModelAdapter`, `filterByConfidence`, `countByLabel`, `UnsupportedImageError` |
-| Model adapters | `createCocoSsdAdapter` (boxes, 80 classes) and `createMobileNetFoodAdapter` (whole-image labels, filtered to an allowlist you pass in) |
-| Node image loading | `createNodeImageDecoder`: JPEG and PNG, only inside an allowed folder, with size caps |
-| MCP server kit | `createSkeletonServer` (comes with `detect_objects` and `count_objects`), `registerTool`, `serveOverStdio` |
-| App_Agent template | `agent-template/app-agent.template.json` |
+| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection` and `Detector` types. |
+| `@skeleton-playground/core/node` | Node only. `createNodeImageDecoder`, `createAppServer`, `defineTool`, `serveApp`, `createSkeletonServer`, `registerTool`, `serveOverStdio`, `jsonResult`, `textResult`, `errorResult`, and the `z` (Zod) used by the kit. |
 
-## Two entry points
+The adapters take an **image decoder** as a parameter, because decoding differs between environments. In Node use `createNodeImageDecoder`. In a browser, write a decoder that draws the image on a canvas and returns its pixels.
 
-- `@skeleton-crew/core` is browser-safe. It imports no Node modules, so a web app can bundle it. A test bundles it for the browser to keep it that way.
-- `@skeleton-crew/core/node` is Node-only (file access, the MCP kit). Use it from CLIs and MCP servers.
+## Security: what the kit does, and what stays your job
 
-The adapters take an **image decoder** as a parameter, because decoding is the one thing that differs between environments. In Node use `createNodeImageDecoder`. In a browser, write a decoder that draws the image to a canvas and returns its pixels.
+A model chooses the file paths in MCP tool calls, so file access is the main risk.
 
-## Create a new app
+**The kit does**
+- `createNodeImageDecoder` **requires** an `allowedRoot` folder. Paths are resolved with symlinks followed, and anything outside that folder is refused.
+- Only `.jpg`, `.jpeg` and `.png` are read, and the format is checked from the file's first bytes, not its name.
+- Size limits apply: 25 MB per file, 50 megapixels per image, and a cap on base64 input.
+- A tool handler that throws becomes an error result, and the server keeps running.
+- The server writes only to stdout in the protocol format. `console.log` is redirected to stderr.
 
-1. **Make the folder** `apps/<your-app>/` with a `package.json` that has `"type": "module"` and the dependency `"@skeleton-crew/core": "workspace:*"`. Copy `tsconfig.json` from an existing app. Run `pnpm install` from the repo root to link it.
-2. **Write the app logic** as plain functions in `apps/<your-app>/src/`. The CLI or UI and the MCP tool must both call these same functions, so results match everywhere.
-3. **Write the MCP server entry**, `apps/<your-app>/src/mcp-server.ts`:
+**Your job**
+- Never read a path that came from a tool input with `fs` directly. Pass it through the decoder (as `detector.detect` does), including to get an image's size.
+- Keep `allowedRoot` narrow, for example one `images/` folder, never your home folder or project root.
+- Keep input schemas strict, and keep launch commands free of secrets.
+- Treat text that comes back from a tool, such as image labels or file names, as untrusted input to the model.
 
-   ```ts
-   import { fileURLToPath } from 'node:url';
-   import { createCocoSsdAdapter, createDetector } from '@skeleton-crew/core';
-   import { createNodeImageDecoder, createSkeletonServer, registerTool, serveOverStdio, z } from '@skeleton-crew/core/node';
+These are guardrails, not a guarantee. Review your own tools. The `agent-template/security-reviewer.template.json` agent below can help.
 
-   const decodeImage = createNodeImageDecoder({ allowedRoot: fileURLToPath(new URL('../../../samples', import.meta.url)) });
-   const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
+## Templates you can copy
 
-   serveOverStdio('my-app', () => {
-     const server = createSkeletonServer({ name: 'my-app', version: '0.1.0', detector });
-     registerTool(server, {
-       name: 'my_tool', // snake_case
-       description: 'What the tool does, written for a model.',
-       inputSchema: z.object({ imagePath: z.string() }),
-       handler: async ({ imagePath }) => ({ content: [{ type: 'text', text: `looked at ${imagePath}` }] }),
-     });
-     return server;
-   });
-   ```
+The package ships `agent-template/`. Nothing is imported from it; copy what you need into your project. After install it is at `node_modules/@skeleton-playground/core/agent-template/`.
 
-4. **Add the launcher and register the server with Kiro.** Copy `agent-template/mcp-launch.template.sh` to `apps/my-app/mcp-launch.sh` and replace only `{{APP_DISPLAY_NAME}}`. Kiro starts servers with whatever Node is the default, and the launcher selects the project's Node. In the server, set the allowed image folder from the file's own location, not the working directory: `process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url))`. A test (`src/tests/unit/mcp-launcher.test.ts`) fails if a launcher differs from the template or a server uses `process.cwd()`. Then register it in `.kiro/settings/mcp.json`:
-
-   ```json
-   { "mcpServers": { "my-app": { "command": "sh", "args": ["apps/my-app/mcp-launch.sh"] } } }
-   ```
-
-5. **Create the App_Agent**: copy `agent-template/app-agent.template.json` to `.kiro/agents/<your-app>.json` and fill in every `{{PLACEHOLDER}}` (app name, description, persona, your tool name, the MCP entry path, a welcome message). The template gives the agent only this app's tools.
-6. **Test it**: run `pnpm test` and `pnpm typecheck`, check the server with `pnpm dlx @modelcontextprotocol/inspector node --import tsx apps/my-app/src/mcp-server.ts`, then ask the agent in Kiro to use a tool.
+| File | Use |
+|---|---|
+| `app-agent.template.json` | A Kiro agent for your app. Copy to `.kiro/agents/<name>.json` and fill in every `{{PLACEHOLDER}}`. It can use only your app's own MCP tools. |
+| `mcp-launch.template.sh` | A POSIX launcher (macOS, Linux, WSL; not plain Windows) that selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |
+| `security-reviewer.template.json` | A read-only Kiro agent (no shell, no write tools) that reviews an MCP server project for file access, permission and prompt-injection problems and reports findings in chat. Copy to `.kiro/agents/security-reviewer.json`. It treats everything it reads as data, not instructions. |
 
 ## Rules to know
 
-- **Tool names are snake_case** (lower-case letters, digits, underscores, starting with a letter). `registerTool` rejects anything else, and rejects a name that is already registered, including `detect_objects` and `count_objects`.
-- **Build input schemas with the `z` exported from `@skeleton-crew/core/node`**, so your app and the kit use the same Zod version. Keep them plain (no `.transform()` or `.default()`). The SDK checks input against the schema before the handler runs, so the handler gets exactly what the caller sent.
-- **stdout belongs to the protocol.** `serveOverStdio` sends `console.log` to stderr, but still log with `console.error` in your own code.
-- **A handler that throws** becomes an error result and the server keeps running.
-- **Detection is slow on the default backend.** It uses pure JavaScript TensorFlow.js, about 5 seconds per image for COCO-SSD on a laptop. `@tensorflow/tfjs-node` is an optional, much faster backend, but it needs build tools to install.
-- **The food classifier is best-effort.** `createMobileNetFoodAdapter` uses ImageNet labels, which lack tomato, onion, carrot, garlic and avocado. Treat its output as suggestions the user can edit.
-- **Model download behind a proxy**: if loading a model fails with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, run Node with `--use-system-ca` (for example `NODE_OPTIONS=--use-system-ca`).
+- **Tool names are snake_case** (lower-case letters, digits, underscores, starting with a letter). `registerTool` rejects anything else, and rejects a name that is already registered.
+- **Build input schemas with the `z` exported from `@skeleton-playground/core/node`**, so your app and the kit use the same Zod version. Keep them plain (no `.transform()` or `.default()`).
+- **stdout belongs to the protocol.** Log with `console.error` in your own code.
+- **The food classifier is best-effort.** `createMobileNetFoodAdapter` uses ImageNet labels, which lack tomato, onion, carrot, garlic and avocado. Treat its output as suggestions.
+- **Model download behind a proxy:** if loading a model fails with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, run Node with `--use-system-ca` (for example `NODE_OPTIONS=--use-system-ca`).
 
-## Tests
+## More
 
-`pnpm test` from the repo root runs everything offline. The tests that load the real models are skipped unless you set `RUN_MODEL_TESTS=1`.
+- [Changelog](./CHANGELOG.md)
+- [Security policy](https://github.com/dignat/kiroween-skeleton-crew/blob/main/SECURITY.md): how to report a problem, and the package's known limits.
+
+## License
+
+MIT. Third-party licenses of the dependencies (Apache-2.0, MIT, BSD, ISC) apply to their own code. The COCO-SSD and MobileNet model weights are downloaded from their publishers and are not covered by this license.

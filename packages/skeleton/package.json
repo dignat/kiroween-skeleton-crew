@@ -1,28 +1,85 @@
 {
-  "name": "@skeleton-crew/core",
+  "name": "@skeleton-playground/core",
   "version": "0.1.0",
   "description": "Reusable skeleton: detection core and MCP server kit shared by every Skeleton Crew app.",
-  "private": true,
+  "keywords": [
+    "object-detection",
+    "tensorflow",
+    "mcp",
+    "model-context-protocol",
+    "kiro",
+    "skeleton"
+  ],
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dignat/kiroween-skeleton-crew.git",
+    "directory": "packages/skeleton"
+  },
+  "homepage": "https://github.com/dignat/kiroween-skeleton-crew/tree/main/packages/skeleton#readme",
+  "bugs": {
+    "url": "https://github.com/dignat/kiroween-skeleton-crew/issues"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./node": "./src/node/index.ts"
   },
+  "files": [
+    "dist",
+    "agent-template",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./node": {
+        "types": "./dist/node/index.d.ts",
+        "default": "./dist/node/index.js"
+      }
+    }
+  },
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",
-    "@tensorflow-models/coco-ssd": "2.2.3",
-    "@tensorflow-models/mobilenet": "2.1.1",
-    "@tensorflow/tfjs": "4.22.0",
     "jpeg-js": "0.4.4",
     "pngjs": "7.0.0",
     "zod": "4.6.7"
   },
+  "peerDependencies": {
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0"
+  },
+  "peerDependenciesMeta": {
+    "@tensorflow-models/coco-ssd": {
+      "optional": true
+    },
+    "@tensorflow-models/mobilenet": {
+      "optional": true
+    },
+    "@tensorflow/tfjs": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.4.0",
+    "@tensorflow-models/coco-ssd": "2.2.3",
+    "@tensorflow-models/mobilenet": "2.1.1",
+    "@tensorflow/tfjs": "4.22.0",
     "@types/pngjs": "6.0.5"
   }
 }

@@ -13,7 +13,7 @@
     "mcp": "node --import tsx src/mcp-server.ts"
   },
   "dependencies": {
-    "@skeleton-crew/core": "workspace:*",
+    "@skeleton-playground/core": "workspace:*",
     "@tensorflow-models/mobilenet": "2.1.1",
     "@tensorflow/tfjs": "4.22.0",
     "zod": "4.6.7"

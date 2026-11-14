@@ -1,4 +1,4 @@
-import type { Detection, PixelImage } from '@skeleton-crew/core';
+import type { Detection, PixelImage } from '@skeleton-playground/core';
 import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
 import { annotateScenes, COLORS, downscale, renderComparisonPng, sideBySide } from './annotate-scenes.js';
