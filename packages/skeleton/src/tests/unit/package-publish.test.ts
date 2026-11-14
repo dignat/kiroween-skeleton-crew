@@ -56,3 +56,30 @@ describe('package name', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+// What a stranger reads on the npm page, and what they copy into their own project, must not
+// assume this repository's layout.
+describe('published text works outside this repo', () => {
+  const readme = readFileSync(join(pkgDir, 'README.md'), 'utf8');
+  const reviewer = readFileSync(join(pkgDir, 'agent-template/security-reviewer.template.json'), 'utf8');
+  const launcher = readFileSync(join(pkgDir, 'agent-template/mcp-launch.template.sh'), 'utf8');
+  const REPO_ONLY = ['workspace:*', 'apps/<', 'apps/my-app', '../../../', 'repo root', 'packages/skeleton', 'pnpm test', 'maintainers', 'mcp-security.test'];
+  it('README has no monorepo-only instructions', () => {
+    for (const text of REPO_ONLY) expect(readme, text).not.toContain(text);
+  });
+  it('README documents the required allowedRoot, the model download and the install size', () => {
+    expect(readme).toContain('allowedRoot');
+    expect(readme).toMatch(/downloaded the first time/i);
+    expect(readme).toMatch(/\b280 MB\b/);
+  });
+  it('the monorepo how-to lives in DEVELOPING.md, which is not shipped', () => {
+    expect(existsSync(join(pkgDir, 'DEVELOPING.md'))).toBe(true);
+    expect(pkg.files).not.toContain('DEVELOPING.md');
+  });
+  it('the reviewer template and launcher template do not name repo-only paths', () => {
+    for (const text of ['packages/skeleton/', 'mcp-security.test', 'apps/*', 'Skeleton Crew monorepo', '.kiro/steering/project-structure']) {
+      expect(reviewer, text).not.toContain(text);
+      expect(launcher, text).not.toContain(text);
+    }
+  });
+});

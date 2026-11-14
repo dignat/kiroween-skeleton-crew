@@ -6,12 +6,13 @@
 # This script loads nvm, selects the version in the repo's .nvmrc, and execs the
 # server. Logs go to stderr only; stdout stays clean for the MCP protocol.
 #
-# Referenced by .kiro/settings/mcp.json. Works on any machine with nvm installed.
-# One launcher per app (see .kiro/steering/project-structure.md); no shared root script.
+# Referenced by your Kiro MCP settings (.kiro/settings/mcp.json). Works on any machine with nvm installed.
+# Change the last line if your server file is not src/mcp-server.ts or you run compiled JavaScript.
+# One launcher per app, so each server runs from its own folder.
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# Run from this app's own folder, never the repo root. The server finds its images folder
-# (samples/) from its own file location, so nothing depends on the working directory.
+# Run from this app's own folder, never the project root. The server finds its images folder
+# from its own file location, so nothing depends on the working directory.
 cd "$SCRIPT_DIR"
 # Load nvm (honour NVM_DIR, fall back to the default install location).
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
