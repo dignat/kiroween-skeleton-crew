@@ -48,6 +48,7 @@ app's MCP tools. Matches the two working App_Agents
 - **The server runs through the app's launcher**, `sh apps/<app>/mcp-launch.sh`,
   not `node --import tsx ...` directly — Kiro spawns servers with the default
   Node, which may be too old, so the launcher loads the `.nvmrc` Node first.
+  The launcher and the `sh` command entry are POSIX-only (macOS, Linux, WSL); plain Windows is a known gap.
   Copy it from `packages/skeleton/agent-template/mcp-launch.template.sh`; a skeleton
   tests fail if it differs
   or if the agent config breaks the security lint in `mcp-security.test.ts` (own tools

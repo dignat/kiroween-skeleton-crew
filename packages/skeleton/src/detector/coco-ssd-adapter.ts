@@ -1,5 +1,6 @@
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import * as tf from '@tensorflow/tfjs';
+import type * as cocoSsd from '@tensorflow-models/coco-ssd';
+import type * as TF from '@tensorflow/tfjs';
+import { importOptionalPeer } from './optional-peer.js';
 import type { ModelAdapter } from './model-adapter.js';
 import type { ImageDecoder } from './pixel-image.js';
 import type { Detection, DetectorImageInput } from './types.js';
@@ -37,6 +38,12 @@ export interface CocoSsdAdapterOptions {
    * leave it off. A warm-up failure never breaks load().
    */
   warmUp?: boolean;
+  /**
+   * Where to load the model files from (the URL of a `model.json`). Default: the publisher's
+   * hosted copy at storage.googleapis.com, downloaded on first use. Set this to host the files
+   * yourself, for example on your own server or CDN, to work offline or to pin a copy.
+   */
+  modelUrl?: string;
 }
 
 /**
@@ -49,14 +56,15 @@ export function createCocoSsdAdapter(options: CocoSsdAdapterOptions): ModelAdapt
   const maxBoxes = options.maxBoxes ?? 20;
   const warmUp = options.warmUp ?? false;
   let model: cocoSsd.ObjectDetection | undefined;
+  let tf: typeof import('@tensorflow/tfjs') | undefined;
 
   /**
    * Primes the backend with one inference on a small blank image. Any error is
    * swallowed and logged to stderr: warm-up is an optimization, not correctness,
    * and must never stop the model from being usable.
    */
-  async function warmUpOnce(loaded: cocoSsd.ObjectDetection): Promise<void> {
-    const dummy = tf.zeros([32, 32, 3], 'int32') as tf.Tensor3D;
+  async function warmUpOnce(loaded: cocoSsd.ObjectDetection, tfjs: typeof import('@tensorflow/tfjs')): Promise<void> {
+    const dummy = tfjs.zeros([32, 32, 3], 'int32') as TF.Tensor3D;
     try {
       await loaded.detect(dummy, maxBoxes, 0);
     } catch (error) {
@@ -71,15 +79,17 @@ export function createCocoSsdAdapter(options: CocoSsdAdapterOptions): ModelAdapt
     defaultMinConfidence,
 
     async load(): Promise<void> {
+      tf = await importOptionalPeer('@tensorflow/tfjs', 'coco-ssd', () => import('@tensorflow/tfjs'), '@tensorflow-models/coco-ssd');
+      const coco = await importOptionalPeer('@tensorflow-models/coco-ssd', 'coco-ssd', () => import('@tensorflow-models/coco-ssd'), '@tensorflow/tfjs');
       await tf.ready();
-      model = await cocoSsd.load();
+      model = await coco.load(options.modelUrl === undefined ? {} : { modelUrl: options.modelUrl });
       if (warmUp) {
-        await warmUpOnce(model);
+        await warmUpOnce(model, tf);
       }
     },
 
     async infer(image: DetectorImageInput): Promise<Detection[]> {
-      if (!model) throw new Error('coco-ssd adapter: infer() called before load()');
+      if (!model || !tf) throw new Error('coco-ssd adapter: infer() called before load()');
       const pixels = await decodeImage(image);
       const tensor = tf.browser.fromPixels(pixels, 3);
       try {

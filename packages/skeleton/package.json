@@ -32,6 +32,7 @@
     "dist",
     "agent-template",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "publishConfig": {
@@ -49,20 +50,36 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "build": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "prepack": "pnpm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",
-    "@tensorflow-models/coco-ssd": "2.2.3",
-    "@tensorflow-models/mobilenet": "2.1.1",
-    "@tensorflow/tfjs": "4.22.0",
     "jpeg-js": "0.4.4",
     "pngjs": "7.0.0",
     "zod": "4.6.7"
   },
+  "peerDependencies": {
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0"
+  },
+  "peerDependenciesMeta": {
+    "@tensorflow-models/coco-ssd": {
+      "optional": true
+    },
+    "@tensorflow-models/mobilenet": {
+      "optional": true
+    },
+    "@tensorflow/tfjs": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.4.0",
+    "@tensorflow-models/coco-ssd": "2.2.3",
+    "@tensorflow-models/mobilenet": "2.1.1",
+    "@tensorflow/tfjs": "4.22.0",
     "@types/pngjs": "6.0.5"
   }
 }

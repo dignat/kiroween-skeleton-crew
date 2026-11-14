@@ -1,0 +1,41 @@
+name: Publish @skeleton-playground/core to npm
+# Publishes the skeleton package with npm provenance, so the npm page shows which commit and
+# workflow built it. Optional: you can also publish by hand (see packages/skeleton/DEVELOPING.md).
+# Needs a repository secret NPM_TOKEN (an npm automation token for the skeleton-playground org).
+on:
+  push:
+    tags: ['core-v*']
+  # Allow manual runs from the Actions tab.
+  workflow_dispatch:
+permissions:
+  contents: read
+  # Required for npm provenance.
+  id-token: write
+concurrency:
+  group: publish-core
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.34.9
+      - name: Use Node from .nvmrc
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck and test
+        run: |
+          pnpm typecheck
+          pnpm test
+      - name: Publish with provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm --filter @skeleton-playground/core publish --access public --provenance --no-git-checks

@@ -85,6 +85,8 @@ Drop in a photo of what you have and brew a recipe.
 
 If you use [nvm](https://github.com/nvm-sh/nvm): `nvm use` picks the right Node. If you don't use nvm, make sure Node 22 is the default `node` on your PATH — Kiro and the MCP launchers spawn `node` from the environment, and an older Node will fail.
 
+**Platform support.** The MCP launchers are POSIX shell scripts and every MCP entry in `.kiro/settings/mcp.json` and `.kiro/agents/` runs `sh`, so Kiro integration is for **macOS, Linux and WSL**. Plain Windows (cmd or PowerShell) has no `sh` and no `nvm.sh`, so the MCP servers will not start there through these entries. Git Bash may work if `sh` is on Kiro's PATH, but this is untested. Nothing here has been tested on Windows. A Windows launcher is not built yet.
+
 ## Setup
 
 ```bash
@@ -132,7 +134,7 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 
 The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to `dist/` on pack, entry points `.` and `./node`). The package README (`packages/skeleton/README.md`) is the npm-facing guide; `packages/skeleton/DEVELOPING.md` has the monorepo how-to (create a new app, publish, test). It has not been published.
 
-Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with. The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launcher comes from `packages/skeleton/agent-template/mcp-launch.template.sh`, and tests fail if an app's launcher differs from it or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
+Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with (macOS, Linux and WSL only; see Platform support above). The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launcher comes from `packages/skeleton/agent-template/mcp-launch.template.sh`, and tests fail if an app's launcher differs from it or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
 
 ### Building a new app with `app-generator`
 

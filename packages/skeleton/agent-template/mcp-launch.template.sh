@@ -6,7 +6,9 @@
 # This script loads nvm, selects the version in the repo's .nvmrc, and execs the
 # server. Logs go to stderr only; stdout stays clean for the MCP protocol.
 #
-# Referenced by your Kiro MCP settings (.kiro/settings/mcp.json). Works on any machine with nvm installed.
+# POSIX shell only: macOS, Linux, WSL. Plain Windows (cmd, PowerShell) has no sh or nvm.sh.
+#
+# Referenced by your Kiro MCP settings (.kiro/settings/mcp.json). Works on any POSIX machine with nvm installed.
 # Change the last line if your server file is not src/mcp-server.ts or you run compiled JavaScript.
 # One launcher per app, so each server runs from its own folder.
 set -e

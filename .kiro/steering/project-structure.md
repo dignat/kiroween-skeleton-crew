@@ -11,7 +11,7 @@ inclusion: always
 - Tests: Vitest for unit tests and `fast-check` for property-based tests. Run with `pnpm test` (`vitest run`). Typecheck with `pnpm typecheck`.
 - Detection: TensorFlow.js (COCO-SSD and a MobileNet-style food classifier) behind a `ModelAdapter`.
 - MCP: each app runs its own stdio MCP server. Kiro custom agents call it. No paid APIs.
-- MCP launch: each app owns a POSIX launcher `apps/<app>/mcp-launch.sh` that loads nvm, selects the `.nvmrc` Node, and execs `node --import tsx` on its own server (all nvm output to stderr). `mcp.json` and agents run it as `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. One launcher per app, no shared root launcher. The launcher `cd`s to the app's own folder, never the repo root, and the server reads images only from `samples/` (found from its own file location, override with `MCP_IMAGES_DIR`), never from `process.cwd()`. Kiro spawns servers without `nvm use`, so a bare `node` command would use the wrong Node version.
+- MCP launch: each app owns a POSIX launcher `apps/<app>/mcp-launch.sh` that loads nvm, selects the `.nvmrc` Node, and execs `node --import tsx` on its own server (all nvm output to stderr). `mcp.json` and agents run it as `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }`. One launcher per app, no shared root launcher. The launcher `cd`s to the app's own folder, never the repo root, and the server reads images only from `samples/` (found from its own file location, override with `MCP_IMAGES_DIR`), never from `process.cwd()`. The launcher is POSIX shell, so MCP integration targets macOS, Linux and WSL; plain Windows is a known gap (documented in README). Kiro spawns servers without `nvm use`, so a bare `node` command would use the wrong Node version.
 
 ## Layout
 

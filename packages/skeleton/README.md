@@ -15,16 +15,28 @@ It knows nothing about any one app. It was built for the Kiroween hackathon, wit
 pnpm add --save-exact @skeleton-playground/core
 ```
 
+That installs the MCP server kit and the image loader only (about 17 MB). The detection models need TensorFlow.js, which is an **optional peer dependency** (about 265 MB), so install what you use:
+
+```bash
+# COCO-SSD: objects with bounding boxes
+pnpm add --save-exact @tensorflow/tfjs @tensorflow-models/coco-ssd
+# MobileNet: whole-image food labels
+pnpm add --save-exact @tensorflow/tfjs @tensorflow-models/mobilenet
+```
+
+If one is missing, the adapter's `load()` throws an error that names the package and the command to install it. Apps that use their own adapter never need TensorFlow.js.
+
 Needs Node 22.12 or newer. The package is ESM only and ships compiled JavaScript with type declarations, so you do not need `tsx` to use it.
 
 **Good to know before you install**
-- The install is large (about 280 MB, 76 packages) because it includes TensorFlow.js and both model adapters.
 - Model weights are **downloaded the first time a model loads**, from `storage.googleapis.com` (COCO-SSD) and `tfhub.dev` (MobileNet). The first run needs internet access. The weights are not bundled, pinned or hash-checked.
+- To work offline or pin a copy, host the model files yourself and pass `modelUrl` (the URL of a `model.json`) to `createCocoSsdAdapter` or `createMobileNetFoodAdapter`. Download the files once from the publisher, put them on your own server or CDN, and use an `http(s)` URL.
+- The package itself is plain Node and has not been tested on Windows. Only the launcher template is known to be POSIX-only.
 - Detection runs on TensorFlow.js's pure JavaScript backend by default, about 5 seconds per image on a laptop for COCO-SSD. `@tensorflow/tfjs-node` is a faster optional backend you can install yourself.
 
 ## Quick start: an MCP server with one tool
 
-Put a few JPEG or PNG files in an `images/` folder next to this file, as `server.mjs`:
+Install the core package and the COCO-SSD packages from the commands above. Put a few JPEG or PNG files in an `images/` folder next to this file, as `server.mjs`:
 
 ```js
 import { fileURLToPath } from 'node:url';
@@ -64,7 +76,7 @@ Run it with `node server.mjs`. It waits for an MCP client on stdin and stdout. T
 { "mcpServers": { "my-app": { "command": "node", "args": ["server.mjs"] } } }
 ```
 
-Kiro starts servers with whatever `node` is first on its PATH, which may be too old. If you use nvm and see "Connection closed", use the launcher template below instead of calling `node` directly.
+Kiro starts servers with whatever `node` is first on its PATH, which may be too old. If you use nvm and see "Connection closed", use the launcher template below instead of calling `node` directly. The launcher template is a POSIX shell script, so it works on macOS, Linux and WSL but **not on plain Windows** (no `sh`, no `nvm.sh`). On Windows, call `node` directly as above and make sure Node 22.12 or newer is your default `node`.
 
 ## Entry points
 
@@ -101,7 +113,7 @@ The package ships `agent-template/`. Nothing is imported from it; copy what you 
 | File | Use |
 |---|---|
 | `app-agent.template.json` | A Kiro agent for your app. Copy to `.kiro/agents/<name>.json` and fill in every `{{PLACEHOLDER}}`. It can use only your app's own MCP tools. |
-| `mcp-launch.template.sh` | A POSIX launcher that selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |
+| `mcp-launch.template.sh` | A POSIX launcher (macOS, Linux, WSL; not plain Windows) that selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |
 | `security-reviewer.template.json` | A read-only Kiro agent (no shell, no write tools) that reviews an MCP server project for file access, permission and prompt-injection problems and reports findings in chat. Copy to `.kiro/agents/security-reviewer.json`. It treats everything it reads as data, not instructions. |
 
 ## Rules to know
@@ -111,6 +123,11 @@ The package ships `agent-template/`. Nothing is imported from it; copy what you 
 - **stdout belongs to the protocol.** Log with `console.error` in your own code.
 - **The food classifier is best-effort.** `createMobileNetFoodAdapter` uses ImageNet labels, which lack tomato, onion, carrot, garlic and avocado. Treat its output as suggestions.
 - **Model download behind a proxy:** if loading a model fails with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, run Node with `--use-system-ca` (for example `NODE_OPTIONS=--use-system-ca`).
+
+## More
+
+- [Changelog](./CHANGELOG.md)
+- [Security policy](https://github.com/dignat/kiroween-skeleton-crew/blob/main/SECURITY.md): how to report a problem, and the package's known limits.
 
 ## License
 
