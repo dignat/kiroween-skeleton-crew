@@ -49,7 +49,9 @@ app's MCP tools. Matches the two working App_Agents
   not `node --import tsx ...` directly — Kiro spawns servers with the default
   Node, which may be too old, so the launcher loads the `.nvmrc` Node first.
   Copy it from `packages/skeleton/agent-template/mcp-launch.template.sh`; a skeleton
-  test fails if it differs. It runs from the app's own folder, and the server reads
+  tests fail if it differs
+  or if the agent config breaks the security lint in `mcp-security.test.ts` (own tools
+  only, exact tool names, `includeMcpJson` false, no env, no wildcard permissions). It runs from the app's own folder, and the server reads
   images only from `samples/` (paths in prompts are relative to `samples/`).
 - **Developer agents differ**: a Dev_Agent (tool-builder, app-generator) has no
   MCP server; its `tools` are the built-ins `fs_read`, `fs_write`, `execute_bash`,

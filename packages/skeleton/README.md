@@ -14,6 +14,8 @@ Apps depend on it as `"@skeleton-crew/core": "workspace:*"` and never edit files
 | Node image loading | `createNodeImageDecoder`: JPEG and PNG, only inside an allowed folder, with size caps |
 | MCP server kit | `createSkeletonServer` (comes with `detect_objects` and `count_objects`), `registerTool`, `serveOverStdio` |
 | App_Agent template | `agent-template/app-agent.template.json` |
+| MCP launcher template | `agent-template/mcp-launch.template.sh` |
+| Security reviewer agent (read-only) | `agent-template/security-reviewer.template.json`; copy it to `.kiro/agents/`. Use it after the lint tests pass: the tests catch known-bad patterns, the reviewer traces data flow and intent. |
 
 ## Two entry points
 
@@ -48,7 +50,7 @@ The adapters take an **image decoder** as a parameter, because decoding is the o
    });
    ```
 
-4. **Add the launcher and register the server with Kiro.** Copy `agent-template/mcp-launch.template.sh` to `apps/my-app/mcp-launch.sh` and replace only `{{APP_DISPLAY_NAME}}`. Kiro starts servers with whatever Node is the default, and the launcher selects the project's Node. In the server, set the allowed image folder from the file's own location, not the working directory: `process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url))`. A test (`src/tests/unit/mcp-launcher.test.ts`) fails if a launcher differs from the template or a server uses `process.cwd()`. Then register it in `.kiro/settings/mcp.json`:
+4. **Add the launcher and register the server with Kiro.** Copy `agent-template/mcp-launch.template.sh` to `apps/my-app/mcp-launch.sh` and replace only `{{APP_DISPLAY_NAME}}`. Kiro starts servers with whatever Node is the default, and the launcher selects the project's Node. In the server, set the allowed image folder from the file's own location, not the working directory: `process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url))`. Tests (`src/tests/unit/mcp-launcher.test.ts` and `mcp-security.test.ts`) fail if a launcher differs from the template, a server uses `process.cwd()`, an app imports `fs`, `child_process` or network modules, or an agent gets wildcard or non-app tools. Then register it in `.kiro/settings/mcp.json`:
 
    ```json
    { "mcpServers": { "my-app": { "command": "sh", "args": ["apps/my-app/mcp-launch.sh"] } } }
