@@ -129,7 +129,7 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 - **poltergeist-detector** — the ghost-hunter agent: `detect_objects`, `count_objects`, `compare_scenes`, `list_labels`.
 - **tool-builder** / **app-generator** — developer agents that scaffold a new MCP tool, or a whole new app from the skeleton, following the project's steering rules.
 
-Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with.
+Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with. The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launcher comes from `packages/skeleton/agent-template/mcp-launch.template.sh`, and a test fails if an app's launcher differs from it or its server uses `process.cwd()`.
 
 ### Building a new app with `app-generator`
 

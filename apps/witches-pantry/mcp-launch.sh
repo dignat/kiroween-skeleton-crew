@@ -8,18 +8,17 @@
 #
 # Referenced by .kiro/settings/mcp.json. Works on any machine with nvm installed.
 # One launcher per app (see .kiro/steering/project-structure.md); no shared root script.
-
 set -e
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
+# Run from this app's own folder, never the repo root. The server finds its images folder
+# (samples/) from its own file location, so nothing depends on the working directory.
+cd "$SCRIPT_DIR"
+# Load nvm (honour NVM_DIR, fall back to the default install location).
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
   # shellcheck disable=SC1090
   . "$NVM_DIR/nvm.sh" >&2
+  # Use the version pinned in .nvmrc (found by walking up from here); fall back to the default alias.
   nvm use >&2 2>/dev/null || nvm use default >&2 2>/dev/null || true
 fi
-
-cd "$REPO_ROOT"
-exec node --import tsx apps/witches-pantry/src/mcp-server.ts
+exec node --import tsx src/mcp-server.ts

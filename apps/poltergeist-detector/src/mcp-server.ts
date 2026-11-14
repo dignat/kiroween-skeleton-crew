@@ -2,6 +2,7 @@
 // list_labels) and hands them to the skeleton's serveApp helper, which wires the
 // built-in detect_objects / count_objects and serves over stdio. The CLI and
 // these tools share the same compareScenes logic (Requirement 5.10).
+import { fileURLToPath } from 'node:url';
 import type { DetectOptions } from '@skeleton-crew/core';
 import { createAppServer, defineTool, jsonResult, serveApp, z } from '@skeleton-crew/core/node';
 import { listCocoLabels } from './coco-labels.js';
@@ -38,9 +39,11 @@ const compareInput = z.object({
 
 /** Builds the server: built-in tools plus this app's tools, sharing one detector. */
 export function createServer() {
-  const allowedRoot = process.cwd();
+  // Images are read only from the repo's samples/ folder, found from this file's location
+  // (not the working directory). Override with MCP_IMAGES_DIR.
+  const allowedRoot = process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url));
   const detector = createCocoDetector(allowedRoot);
-  const getSize = createImageSizer();
+  const getSize = createImageSizer(allowedRoot);
 
   return createAppServer({
     name: SERVER_NAME,

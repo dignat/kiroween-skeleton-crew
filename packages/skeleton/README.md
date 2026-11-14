@@ -29,10 +29,11 @@ The adapters take an **image decoder** as a parameter, because decoding is the o
 3. **Write the MCP server entry**, `apps/<your-app>/src/mcp-server.ts`:
 
    ```ts
+   import { fileURLToPath } from 'node:url';
    import { createCocoSsdAdapter, createDetector } from '@skeleton-crew/core';
    import { createNodeImageDecoder, createSkeletonServer, registerTool, serveOverStdio, z } from '@skeleton-crew/core/node';
 
-   const decodeImage = createNodeImageDecoder({ allowedRoot: 'samples' });
+   const decodeImage = createNodeImageDecoder({ allowedRoot: fileURLToPath(new URL('../../../samples', import.meta.url)) });
    const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
 
    serveOverStdio('my-app', () => {
@@ -47,10 +48,10 @@ The adapters take an **image decoder** as a parameter, because decoding is the o
    });
    ```
 
-4. **Register the server with Kiro** in `.kiro/settings/mcp.json`. The working folder is the repo root, so use root-relative paths:
+4. **Add the launcher and register the server with Kiro.** Copy `agent-template/mcp-launch.template.sh` to `apps/my-app/mcp-launch.sh` and replace only `{{APP_DISPLAY_NAME}}`. Kiro starts servers with whatever Node is the default, and the launcher selects the project's Node. In the server, set the allowed image folder from the file's own location, not the working directory: `process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url))`. A test (`src/tests/unit/mcp-launcher.test.ts`) fails if a launcher differs from the template or a server uses `process.cwd()`. Then register it in `.kiro/settings/mcp.json`:
 
    ```json
-   { "mcpServers": { "my-app": { "command": "node", "args": ["--import", "tsx", "apps/my-app/src/mcp-server.ts"] } } }
+   { "mcpServers": { "my-app": { "command": "sh", "args": ["apps/my-app/mcp-launch.sh"] } } }
    ```
 
 5. **Create the App_Agent**: copy `agent-template/app-agent.template.json` to `.kiro/agents/<your-app>.json` and fill in every `{{PLACEHOLDER}}` (app name, description, persona, your tool name, the MCP entry path, a welcome message). The template gives the agent only this app's tools.
