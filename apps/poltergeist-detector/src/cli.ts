@@ -23,7 +23,7 @@ async function runCompare(cmd: CompareCommand): Promise<string> {
 
   // Allow reading from the common root of both photos (the current directory).
   const detector = createCocoDetector(process.cwd());
-  const getSize = createImageSizer();
+  const getSize = createImageSizer(process.cwd());
 
   const options: DetectOptions =
     cmd.minConfidence === undefined ? {} : { minConfidence: cmd.minConfidence };

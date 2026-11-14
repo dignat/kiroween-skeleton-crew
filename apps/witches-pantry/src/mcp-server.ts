@@ -5,6 +5,7 @@
 // Node-only. It must not import the browser decoder (browser-image-decoder.ts).
 // The recipe logic modules it imports are browser-safe and have no DOM use.
 
+import { fileURLToPath } from 'node:url';
 import {
   createAppServer,
   defineTool,
@@ -91,7 +92,9 @@ const calculateNutritionInput = z.object({
 
 /** Builds the server: built-in tools plus this app's tools, sharing one detector. */
 export function createServer() {
-  const allowedRoot = process.cwd();
+  // Images are read only from the repo's samples/ folder, found from this file's location
+  // (not the working directory). Override with MCP_IMAGES_DIR.
+  const allowedRoot = process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url));
   const detector = createFoodDetector(allowedRoot);
 
   const suggestRecipesTool = defineTool({
