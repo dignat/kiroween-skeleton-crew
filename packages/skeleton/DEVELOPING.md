@@ -1,5 +1,5 @@
 # Developing the skeleton (monorepo guide)
-**Platform:** the MCP launchers and the Kiro entries use `sh`, so work on this repo with Kiro on macOS, Linux or WSL. Plain Windows is not supported yet. Supporting it would need a `.cmd` launcher template, the lint tests accepting both launcher forms, and a `windows-latest` CI job that starts a server through it.
+**Platform:** the MCP launchers and the Kiro entries use `sh`, so work on this repo with Kiro on macOS, Linux or WSL. Plain Windows is not supported yet; see "Windows support (not built)" at the end of this file.
 
 For people working inside the `kiroween-skeleton-crew` repo. This file is not shipped to npm; the package
 README (`README.md`) is the user-facing one.
@@ -56,3 +56,35 @@ Release checklist: update `version` in `package.json`, add a matching `## <versi
 ## Tests
 
 `pnpm test` from the repo root runs everything offline. The tests that load the real models are skipped unless you set `RUN_MODEL_TESTS=1`.
+
+## Windows support (not built)
+Status: not supported. Nothing in this repo has been tested on Windows. This section records what an investigation found, so the work can be picked up later. No code was written for it.
+
+**Why the shell launcher cannot just be ported**
+- Kiro's `mcp.json` accepts only `command`, `args` and `env`. There is no `cwd` and no per-OS entry, so Windows needs its own block, and users edit it locally.
+- Agent configs (`.kiro/agents/*.json`) carry an inline `mcpServers` entry that takes priority over `mcp.json` (order: agent config, workspace `mcp.json`, global `mcp.json`). A Windows user would have to change each agent file too, so the agent template would need a Windows variant.
+- nvm-windows needs administrator rights for `nvm use`, switches Node for the whole machine, and does not read `.nvmrc`. Do not build a launcher on it.
+- A `.cmd` launcher is the weakest choice: MCP clients cannot start `.cmd` files directly (it has to be `cmd /c ...`), `cmd` treats forward slashes as switches so relative paths like `apps/x/...` are a known gotcha, and recent Node versions refuse to spawn `.cmd` files without a shell.
+- The shell launcher must stay on macOS and Linux. Kiro started from the Dock often has no `node` on its PATH, so a Node-based launcher cannot replace `sh` there.
+
+**Options, best first**
+1. **Direct `node` entry (recommended).** `"command": "node", "args": ["--import", "tsx", "apps/<app>/src/mcp-server.ts"]`. No launcher at all. Works when the default Node is 22.12 or newer, which is common on Windows because the installer puts one Node on the PATH. If Node is too old the failure is the unhelpful "Connection closed". A server exits as soon as its stdin closes (checked), so no wrapper is needed to avoid orphan processes.
+2. **A Node launcher (`mcp-launch.cjs`),** run as `node apps/<app>/mcp-launch.cjs`. Plain CommonJS runs on an old Node, because the original failure was the `--import` flag, not the script. It could print a clear version error and look for Node 22 in nvm-windows or fnm folders. About 60 lines for a better error message, so only worth it after a real user hits an old Node.
+3. **WSL:** `"command": "wsl", "args": ["sh", "apps/<app>/mcp-launch.sh"]`. Reuses the shell launcher, but needs WSL with Node and nvm inside, and how Kiro handles the path is unverified.
+
+**Other Windows problems, separate from the launcher**
+- **Line endings.** There is no `.gitattributes`, and Git for Windows converts files to CRLF by default. A CRLF `mcp-launch.sh` breaks under `sh` (WSL, Git Bash). The lint tests strip `\r` and would not notice. Adding `*.sh text eol=lf` to a new `.gitattributes` is a one-line fix that helps every platform.
+- **`pnpm test:models`** uses `RUN_MODEL_TESTS=1 vitest ...`, which does not work in cmd or PowerShell. It needs a cross-platform env tool, or a note to use WSL.
+- **Lint tests.** `mcp-security.test.ts` requires `command` to be `sh` with a `.sh` argument. It would need to accept the Windows form as well.
+- **Image paths.** The decoder uses `node:path`, which handles drive letters. Case differences, 8.3 short names and UNC paths are untested.
+
+**Not verified (needs a Windows machine)**
+- Whether Kiro on Windows runs MCP servers from the workspace root (the `sh apps/...` entries on macOS rely on that).
+- Whether `sh` is on Kiro's PATH on a typical Windows install.
+- Whether the tests and the apps run at all.
+
+**Suggested plan**
+1. Add `.gitattributes` with `*.sh text eol=lf`.
+2. Document option 1 as the Windows block, and add a Windows variant of the agent template.
+3. Let the lint tests accept both launch forms.
+4. Add a `windows-latest` CI job that installs the repo, starts a server with the Windows entry, and lists its tools. That job is the only way to know it works.
