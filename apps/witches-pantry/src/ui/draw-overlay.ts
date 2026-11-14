@@ -2,7 +2,7 @@
 // detections (those with a box, e.g. COCO-SSD) and labelled tags stacked in the
 // corner for whole-image classifications (no box, e.g. MobileNet food labels).
 
-import type { Detection } from '@skeleton-crew/core';
+import type { Detection } from '@skeleton-playground/core';
 
 /** Draws the image into the canvas, sizing the canvas to the image. */
 export function drawImageToCanvas(canvas: HTMLCanvasElement, img: HTMLImageElement): void {

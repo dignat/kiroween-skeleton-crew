@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import type { Detection } from '@skeleton-crew/core';
+import type { Detection } from '@skeleton-playground/core';
 import { assessFoodRelevance } from './food-relevance.js';
 
 const det = (label: string): Detection => ({ label, confidence: 0.8 });

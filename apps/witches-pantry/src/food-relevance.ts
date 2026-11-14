@@ -7,7 +7,7 @@
 // need a dedicated safety classifier, which is out of scope here (no paid/keyed
 // services). The app is honest about this: it gates to food-relevant images.
 
-import type { Detection } from '@skeleton-crew/core';
+import type { Detection } from '@skeleton-playground/core';
 import { normalizeIngredients } from './ingredient-map.js';
 
 export interface FoodRelevanceResult {

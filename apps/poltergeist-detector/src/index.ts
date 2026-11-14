@@ -1,7 +1,7 @@
 // Poltergeist Detector: app logic entry point.
 // The CLI and the compare_scenes MCP tool (task 16) both call this same logic.
 
-import { SKELETON_NAME } from '@skeleton-crew/core';
+import { SKELETON_NAME } from '@skeleton-playground/core';
 
 export const APP_NAME = 'poltergeist-detector';
 export const BUILT_ON = SKELETON_NAME;

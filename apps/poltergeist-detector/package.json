@@ -14,7 +14,7 @@
     "mcp": "node --import tsx src/mcp-server.ts"
   },
   "dependencies": {
-    "@skeleton-crew/core": "workspace:*",
+    "@skeleton-playground/core": "workspace:*",
     "pngjs": "7.0.0"
   },
   "devDependencies": {

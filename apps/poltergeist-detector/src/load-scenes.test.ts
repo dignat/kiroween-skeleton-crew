@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Detection, Detector, DetectorImageInput } from '@skeleton-crew/core';
+import type { Detection, Detector, DetectorImageInput } from '@skeleton-playground/core';
 import { SceneLoadError } from './errors/index.js';
 import { loadScenes, type ImageSizer } from './load-scenes.js';
 

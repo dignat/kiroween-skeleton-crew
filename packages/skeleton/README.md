@@ -1,9 +1,28 @@
-# @skeleton-crew/core
+# @skeleton-playground/core
 
 The shared skeleton for AI-integrated object detection apps. It holds a detection core and a
 Model Context Protocol (MCP) server kit. It knows nothing about photos, recipes or any single app.
 
-Apps depend on it as `"@skeleton-crew/core": "workspace:*"` and never edit files in this folder.
+Apps in this repo depend on it as `"@skeleton-playground/core": "workspace:*"` and never edit files in this folder.
+
+## Install (outside this repo)
+```bash
+pnpm add --save-exact @skeleton-playground/core
+```
+Needs Node 22.12 or newer. The package is ESM only and ships compiled JavaScript with type declarations, so your app does not need `tsx` to import it. It has two entry points:
+- `@skeleton-playground/core`: browser-safe detection core (no Node modules).
+- `@skeleton-playground/core/node`: Node-only image loading and the MCP server kit.
+
+The package also ships `agent-template/` (the App_Agent template, the MCP launcher template and the read-only security reviewer agent). Copy the files you need into your own project; they are not imported. The launcher template starts `src/mcp-server.ts` with `node --import tsx`, so change its last line to `node dist/mcp-server.js` if you compile your app. Always pass your own `allowedRoot` to `createNodeImageDecoder`; it is required and decides which files a model can make the server read.
+
+## Publishing (maintainers)
+Inside the repo the package runs straight from `src/` (TypeScript). `pnpm pack` and `pnpm publish` swap the entry points to the compiled `dist/` through `publishConfig.exports`, and `prepack` builds first.
+```bash
+pnpm --filter @skeleton-playground/core build           # compile to dist/ (also runs on pack)
+pnpm --filter @skeleton-playground/core pack            # inspect the tarball
+pnpm --filter @skeleton-playground/core publish --dry-run
+```
+Publishing needs an npm login for an account in the `skeleton-playground` npm organization (the `@skeleton-playground` scope). Check the tarball contents before the first real publish: no tests, fixtures or spike files should be in it.
 
 ## What is inside
 
@@ -19,21 +38,21 @@ Apps depend on it as `"@skeleton-crew/core": "workspace:*"` and never edit files
 
 ## Two entry points
 
-- `@skeleton-crew/core` is browser-safe. It imports no Node modules, so a web app can bundle it. A test bundles it for the browser to keep it that way.
-- `@skeleton-crew/core/node` is Node-only (file access, the MCP kit). Use it from CLIs and MCP servers.
+- `@skeleton-playground/core` is browser-safe. It imports no Node modules, so a web app can bundle it. A test bundles it for the browser to keep it that way.
+- `@skeleton-playground/core/node` is Node-only (file access, the MCP kit). Use it from CLIs and MCP servers.
 
 The adapters take an **image decoder** as a parameter, because decoding is the one thing that differs between environments. In Node use `createNodeImageDecoder`. In a browser, write a decoder that draws the image to a canvas and returns its pixels.
 
 ## Create a new app
 
-1. **Make the folder** `apps/<your-app>/` with a `package.json` that has `"type": "module"` and the dependency `"@skeleton-crew/core": "workspace:*"`. Copy `tsconfig.json` from an existing app. Run `pnpm install` from the repo root to link it.
+1. **Make the folder** `apps/<your-app>/` with a `package.json` that has `"type": "module"` and the dependency `"@skeleton-playground/core": "workspace:*"`. Copy `tsconfig.json` from an existing app. Run `pnpm install` from the repo root to link it.
 2. **Write the app logic** as plain functions in `apps/<your-app>/src/`. The CLI or UI and the MCP tool must both call these same functions, so results match everywhere.
 3. **Write the MCP server entry**, `apps/<your-app>/src/mcp-server.ts`:
 
    ```ts
    import { fileURLToPath } from 'node:url';
-   import { createCocoSsdAdapter, createDetector } from '@skeleton-crew/core';
-   import { createNodeImageDecoder, createSkeletonServer, registerTool, serveOverStdio, z } from '@skeleton-crew/core/node';
+   import { createCocoSsdAdapter, createDetector } from '@skeleton-playground/core';
+   import { createNodeImageDecoder, createSkeletonServer, registerTool, serveOverStdio, z } from '@skeleton-playground/core/node';
 
    const decodeImage = createNodeImageDecoder({ allowedRoot: fileURLToPath(new URL('../../../samples', import.meta.url)) });
    const detector = createDetector(createCocoSsdAdapter({ decodeImage }));
@@ -62,7 +81,7 @@ The adapters take an **image decoder** as a parameter, because decoding is the o
 ## Rules to know
 
 - **Tool names are snake_case** (lower-case letters, digits, underscores, starting with a letter). `registerTool` rejects anything else, and rejects a name that is already registered, including `detect_objects` and `count_objects`.
-- **Build input schemas with the `z` exported from `@skeleton-crew/core/node`**, so your app and the kit use the same Zod version. Keep them plain (no `.transform()` or `.default()`). The SDK checks input against the schema before the handler runs, so the handler gets exactly what the caller sent.
+- **Build input schemas with the `z` exported from `@skeleton-playground/core/node`**, so your app and the kit use the same Zod version. Keep them plain (no `.transform()` or `.default()`). The SDK checks input against the schema before the handler runs, so the handler gets exactly what the caller sent.
 - **stdout belongs to the protocol.** `serveOverStdio` sends `console.log` to stderr, but still log with `console.error` in your own code.
 - **A handler that throws** becomes an error result and the server keeps running.
 - **Detection is slow on the default backend.** It uses pure JavaScript TensorFlow.js, about 5 seconds per image for COCO-SSD on a laptop. `@tensorflow/tfjs-node` is an optional, much faster backend, but it needs build tools to install.

@@ -12,7 +12,7 @@ import {
   jsonResult,
   serveApp,
   z,
-} from '@skeleton-crew/core/node';
+} from '@skeleton-playground/core/node';
 import { assessFoodRelevance } from './food-relevance.js';
 import { normalizeIngredients } from './ingredient-map.js';
 import { createFoodDetector } from './node-detector.js';

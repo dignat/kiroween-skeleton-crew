@@ -28,7 +28,7 @@ Deadline: **4 December 2026**. Target submission date: **Wednesday 2 December**,
     - _Requirements: 12.1_
   - [x] 1.3 Convert the root `tsconfig.json` into `tsconfig.base.json` (keep the strict options) and add per-package `tsconfig.json` files that extend it, with `types: ["node"]` only where needed
     - _Requirements: 1.1_
-  - [x] 1.4 Create empty package shells: `packages/skeleton`, `apps/poltergeist-detector`, `apps/witches-pantry`, each with its own `package.json` (`"type": "module"`, apps depend on `@skeleton-crew/core` through `workspace:*`)
+  - [x] 1.4 Create empty package shells: `packages/skeleton`, `apps/poltergeist-detector`, `apps/witches-pantry`, each with its own `package.json` (`"type": "module"`, apps depend on `@skeleton-playground/core` through `workspace:*`)
     - _Requirements: 1.1, 1.5_
   - [x] 1.5 Create `.gitignore` with `node_modules/`, `dist/`, and `.env*`. Do not ignore `.kiro/` or anything inside it
     - _Requirements: 12.3_
@@ -249,7 +249,7 @@ Each spike ends with a written decision in `design.md` and a line in `KIRO_USAGE
 
 - [ ] 28. Developer custom agents (28.1 and 28.2 done; the 28.3 rehearsal is done, only the screen recording remains)
   - [x] 28.1 `tool-builder` agent, written after the CLI app exists so it captures real conventions. Test it by asking it to add a small tool and check the result follows the steering file
-    - Agent at `.kiro/agents/tool-builder.json`. TESTED in Kiro: asked it to add a `list_labels` tool to the poltergeist-detector app. It read project-structure.md, created a pure function (`coco-labels.ts`) with a Vitest test incl. a property test, registered a snake_case tool with a Zod schema from @skeleton-crew/core/node returning jsonResult, and prompted for approval on each write/command. Result follows the steering; the tool (80 COCO labels) was kept. 143 tests pass. Note: the agent's welcomeMessage did not show on switch (cosmetic; it shows in a fresh chat). Getting the agent to appear at all required dropping `allowedTools` — see design addendum.
+    - Agent at `.kiro/agents/tool-builder.json`. TESTED in Kiro: asked it to add a `list_labels` tool to the poltergeist-detector app. It read project-structure.md, created a pure function (`coco-labels.ts`) with a Vitest test incl. a property test, registered a snake_case tool with a Zod schema from @skeleton-playground/core/node returning jsonResult, and prompted for approval on each write/command. Result follows the steering; the tool (80 COCO labels) was kept. 143 tests pass. Note: the agent's welcomeMessage did not show on switch (cosmetic; it shows in a fresh chat). Getting the agent to appear at all required dropping `allowedTools` — see design addendum.
     - _Requirements: 7.1, 7.3_
   - [x] 28.2 `app-generator` agent that creates a new app folder, MCP entry, `mcp.json` entry, and App_Agent from the template
     - Agent at `.kiro/agents/app-generator.json`. Scaffolds package.json, tsconfig, logic + test, mcp-server.ts, the per-app mcp-launch.sh, and the App_Agent from the template; prints the mcp.json block for the user to paste (agent cannot write to .kiro/settings/). Runs install + typecheck + test to verify.

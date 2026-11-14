@@ -1,4 +1,4 @@
-import type { Detection, PixelImage } from '@skeleton-crew/core';
+import type { Detection, PixelImage } from '@skeleton-playground/core';
 import { PNG } from 'pngjs';
 import type { SceneComparison } from './compare-scenes.js';
 

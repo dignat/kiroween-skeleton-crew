@@ -2,8 +2,8 @@
 // Wires image detection, editable ingredient chips, and recipe suggestions,
 // all running in the browser.
 
-import { createDetector, createMobileNetFoodAdapter, UnsupportedImageError } from '@skeleton-crew/core';
-import type { DetectorImageInput } from '@skeleton-crew/core';
+import { createDetector, createMobileNetFoodAdapter, UnsupportedImageError } from '@skeleton-playground/core';
+import type { DetectorImageInput } from '@skeleton-playground/core';
 import { createBrowserImageDecoder, fileToDetectorInput } from './browser-image-decoder.js';
 import { FOOD_LABELS } from './food-labels.js';
 import { describeFilters } from './dietary-filters.js';

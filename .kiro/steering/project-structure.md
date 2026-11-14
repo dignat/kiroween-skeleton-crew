@@ -16,7 +16,7 @@ inclusion: always
 ## Layout
 
 ```
-packages/skeleton/        shared template (package name @skeleton-crew/core)
+packages/skeleton/        shared template (package name @skeleton-playground/core)
 apps/poltergeist-detector/  CLI before/after scene comparison
 apps/witches-pantry/      web UI, food detection and recipes
 samples/                  own photos only
@@ -29,7 +29,7 @@ Tests sit next to the code as `*.test.ts` under `src/`.
 
 - `packages/skeleton` knows nothing about photos, recipes, or any single app.
 - Apps never edit files under `packages/`. App-specific logic lives in the app folder.
-- Apps import the skeleton through `@skeleton-crew/core` (`workspace:*`).
+- Apps import the skeleton through `@skeleton-playground/core` (`workspace:*`).
 - The browser-safe entry point must not import Node modules (`fs`, `path`, etc.). Node-only code (image loading, MCP server kit) goes in the Node entry point.
 - Each app's CLI or UI and its MCP tools call the same app logic. Do not duplicate it.
 

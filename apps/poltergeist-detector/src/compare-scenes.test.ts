@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import type { Detection } from '@skeleton-crew/core';
+import type { Detection } from '@skeleton-playground/core';
 import {
   compareScenes,
   DEFAULT_MOVE_TOLERANCE,

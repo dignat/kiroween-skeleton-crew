@@ -1,4 +1,4 @@
-// Node-only entry point (`@skeleton-crew/core/node`).
+// Node-only entry point (`@skeleton-playground/core/node`).
 // Anything that needs fs, path or other Node modules lives here, never in the browser-safe entry.
 
 export { ImageAccessError, SkeletonMcpError } from './errors/index.js';

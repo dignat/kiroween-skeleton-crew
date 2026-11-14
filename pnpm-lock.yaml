@@ -44,7 +44,7 @@ importers:
 
   apps/poltergeist-detector:
     dependencies:
-      '@skeleton-crew/core':
+      '@skeleton-playground/core':
         specifier: workspace:*
         version: link:../../packages/skeleton
       pngjs:
@@ -60,7 +60,7 @@ importers:
 
   apps/witches-pantry:
     dependencies:
-      '@skeleton-crew/core':
+      '@skeleton-playground/core':
         specifier: workspace:*
         version: link:../../packages/skeleton
       '@tensorflow-models/mobilenet':

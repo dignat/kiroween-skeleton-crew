@@ -19,7 +19,7 @@ the step-by-step for adding a new tool so it matches the two existing apps.
    `fast-check` for the pure logic, plus an example test or two. Run `pnpm test`.
 
 3. **Register the tool** in the app's `src/mcp-server.ts`:
-   - Import `defineTool`, `jsonResult`/`textResult`, and `z` from `@skeleton-crew/core/node`.
+   - Import `defineTool`, `jsonResult`/`textResult`, and `z` from `@skeleton-playground/core/node`.
    - Build the input schema with that `z` (so it shares the kit's Zod version).
      Keep the schema free of `.transform()` and `.default()`.
    - Add `defineTool({ name, description, inputSchema, handler })` to the `tools` array

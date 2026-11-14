@@ -2,8 +2,8 @@
 // and reads back RGBA pixels, the browser counterpart to the Node jpeg/png decoder.
 // This is the only environment-specific piece the food adapter needs.
 
-import type { DetectorImageInput, PixelImage } from '@skeleton-crew/core';
-import { UnsupportedImageError } from '@skeleton-crew/core';
+import type { DetectorImageInput, PixelImage } from '@skeleton-playground/core';
+import { UnsupportedImageError } from '@skeleton-playground/core';
 
 /** Largest side we feed the model. Big phone photos are downscaled for speed. */
 const MAX_SIDE = 1024;

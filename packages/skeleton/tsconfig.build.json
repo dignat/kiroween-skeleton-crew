@@ -1,0 +1,11 @@
+{
+  // Used only to publish: compiles src/ to dist/ without tests, fixtures or spikes.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "sourceMap": false,
+    "declarationMap": false
+  },
+  "include": ["src"],
+  "exclude": ["src/tests", "src/**/*.test.ts", "src/**/test-helpers.ts", "src/**/stdio-fixture.ts"]
+}

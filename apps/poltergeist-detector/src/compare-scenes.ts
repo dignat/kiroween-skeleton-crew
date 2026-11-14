@@ -1,4 +1,4 @@
-import type { Detection } from '@skeleton-crew/core';
+import type { Detection } from '@skeleton-playground/core';
 
 /**
  * Poltergeist Detector core logic (task 15.1). Pure function, no I/O.

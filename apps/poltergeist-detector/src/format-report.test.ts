@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Detection } from '@skeleton-crew/core';
+import type { Detection } from '@skeleton-playground/core';
 import { compareScenes } from './compare-scenes.js';
 import { formatHauntingReport, formatJson, toReport } from './format-report.js';
 

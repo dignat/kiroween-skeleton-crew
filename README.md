@@ -6,7 +6,7 @@ One template. Two very different apps. Every app's CLI/UI and its Kiro agent sha
 
 - 🔮 **The Witch's Pantry** — a web app: photograph your ingredients and it suggests recipes, themed as potions, with a playful "Curse Level", dietary filters, and a food-relevance guard.
 - 👻 **The Poltergeist Detector** — a CLI: compare two photos of the same place and it reports what *appeared, vanished, or moved*.
-- 🧩 **`@skeleton-crew/core`** — the shared skeleton: a pluggable detector abstraction and an MCP server kit both apps are built from.
+- 🧩 **`@skeleton-playground/core`** — the shared skeleton: a pluggable detector abstraction and an MCP server kit both apps are built from.
 
 **Live web app:** https://dignat.github.io/kiroween-skeleton-crew/
 
@@ -40,17 +40,17 @@ The detector is a small on-device model, so results on casual photos can flicker
 ## What's in the box
 
 ```
-packages/skeleton/          @skeleton-crew/core — detector abstraction + MCP server kit
+packages/skeleton/          @skeleton-playground/core — detector abstraction + MCP server kit
 apps/poltergeist-detector/  CLI: before/after scene comparison
 apps/witches-pantry/        web app: food detection + recipe "potions"
 samples/                    sample images (original, no copyrighted material)
 .kiro/                      specs, steering, hooks, agents, MCP settings (all committed)
 ```
 
-### The skeleton (`@skeleton-crew/core`)
+### The skeleton (`@skeleton-playground/core`)
 
 - A `Detector` with a swappable `ModelAdapter`, so an app picks a model without touching the interface. Two adapters ship: `createCocoSsdAdapter` (80 COCO classes, with bounding boxes) and `createMobileNetFoodAdapter` (whole-image food classification, filtered to an app-supplied allowlist).
-- A browser-safe entry point (`@skeleton-crew/core`) and a Node-only entry point (`@skeleton-crew/core/node`), enforced by a build test so the browser bundle never pulls in Node modules.
+- A browser-safe entry point (`@skeleton-playground/core`) and a Node-only entry point (`@skeleton-playground/core/node`), enforced by a build test so the browser bundle never pulls in Node modules.
 - An **MCP server kit**: `createSkeletonServer` (pre-wired with `detect_objects` and `count_objects`), `registerTool` (snake_case names, duplicate-name rejection, Zod validation, errors become results not crashes), and a stdio helper that keeps stdout clean for the protocol.
 - The model loads once per detector and is reused.
 
@@ -130,11 +130,13 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 - **tool-builder** / **app-generator** — developer agents that scaffold a new MCP tool, or a whole new app from the skeleton, following the project's steering rules.
 - **security-reviewer** — a read-only reviewer (`fs_read`, `grep`, `glob`, no shell or write access). It traces model-chosen file paths, agent permissions, launchers and prompt-injection surfaces, then reports findings in chat. It treats everything it reads as data, not instructions. Try: `Review apps/witches-pantry for security.` Its template lives in `packages/skeleton/agent-template/security-reviewer.template.json`.
 
+The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to `dist/` on pack, entry points `.` and `./node`). See `packages/skeleton/README.md` for install and publishing steps. It has not been published.
+
 Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.sh`) that selects the project's Node via nvm, so it works regardless of the default Node that Kiro spawns with. The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launcher comes from `packages/skeleton/agent-template/mcp-launch.template.sh`, and tests fail if an app's launcher differs from it or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
 
 ### Building a new app with `app-generator`
 
-The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-crew/core`, linked via `workspace:*`), not something published to npm. So a developer clones this repo and grows new detection apps within it:
+The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-playground/core`, linked via `workspace:*`), not something published to npm. So a developer clones this repo and grows new detection apps within it:
 
 1. Clone the repo, run `nvm use` (Node 22) and `pnpm install` at the root.
 2. Open it in Kiro and switch to the **app-generator** agent.
