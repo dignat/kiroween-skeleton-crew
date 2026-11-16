@@ -31,7 +31,7 @@ Needs Node 22.12 or newer. The package is ESM only and ships compiled JavaScript
 **Good to know before you install**
 - Model weights are **downloaded the first time a model loads**, from `storage.googleapis.com` (COCO-SSD) and `tfhub.dev` (MobileNet). The first run needs internet access. The weights are not bundled, pinned or hash-checked.
 - To work offline or pin a copy, host the model files yourself and pass `modelUrl` (the URL of a `model.json`) to `createCocoSsdAdapter` or `createMobileNetFoodAdapter`. Download the files once from the publisher, put them on your own server or CDN, and use an `http(s)` URL.
-- The package itself is plain Node and has not been tested on Windows. Only the launcher template is known to be POSIX-only.
+- The package itself is plain Node and has not been tested on Windows. The Node launcher template is the cross-platform default; only the fallback shell launcher template is POSIX-only.
 - Detection runs on TensorFlow.js's pure JavaScript backend by default, about 5 seconds per image on a laptop for COCO-SSD. `@tensorflow/tfjs-node` is a faster optional backend you can install yourself.
 
 ## Quick start: an MCP server with one tool
@@ -76,7 +76,7 @@ Run it with `node server.mjs`. It waits for an MCP client on stdin and stdout. T
 { "mcpServers": { "my-app": { "command": "node", "args": ["server.mjs"] } } }
 ```
 
-Kiro starts servers with whatever `node` is first on its PATH, which may be too old. If you use nvm and see "Connection closed", use the launcher template below instead of calling `node` directly. The launcher template is a POSIX shell script, so it works on macOS, Linux and WSL but **not on plain Windows** (no `sh`, no `nvm.sh`). On Windows, call `node` directly as above and make sure Node 22.12 or newer is your default `node`.
+Kiro starts servers with whatever `node` is first on its PATH, which may be too old. If you use nvm and see "Connection closed", use the Node launcher template below (`mcp-launch.template.cjs`, run as `node mcp-launch.cjs`) instead of calling your server directly. It works on macOS, Linux and Windows, needs only some `node` on Kiro's PATH, finds the `.nvmrc` version and prints a clear error if there is none. It has been tested on macOS only. If Kiro has no `node` on its PATH at all, use the shell launcher template (`mcp-launch.template.sh`, run with `sh`). It loads nvm itself, but it is a POSIX shell script, so it works on macOS, Linux and WSL and **not on plain Windows** (no `sh`, no `nvm.sh`).
 
 ## Entry points
 
@@ -113,7 +113,8 @@ The package ships `agent-template/`. Nothing is imported from it; copy what you 
 | File | Use |
 |---|---|
 | `app-agent.template.json` | A Kiro agent for your app. Copy to `.kiro/agents/<name>.json` and fill in every `{{PLACEHOLDER}}`. It can use only your app's own MCP tools. |
-| `mcp-launch.template.sh` | A POSIX launcher (macOS, Linux, WSL; not plain Windows) that selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |
+| `mcp-launch.template.cjs` | The default, cross-platform Node launcher (CommonJS, so it starts even on an old Node). Copy to `mcp-launch.cjs`, replace `{{APP_DISPLAY_NAME}}` and register it as `{ "command": "node", "args": ["mcp-launch.cjs"] }`. It reads the version from `.nvmrc`, looks for a matching install in the nvm folders when the default `node` is too old, and otherwise prints a clear error to stderr. It needs some `node` on Kiro's PATH. Tested on macOS only. |
+| `mcp-launch.template.sh` | The fallback POSIX launcher (macOS, Linux, WSL; not plain Windows) for when Kiro has no `node` on its PATH. It selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |
 | `security-reviewer.template.json` | A read-only Kiro agent (no shell, no write tools) that reviews an MCP server project for file access, permission and prompt-injection problems and reports findings in chat. Copy to `.kiro/agents/security-reviewer.json`. It treats everything it reads as data, not instructions. |
 
 ## Rules to know

@@ -62,7 +62,7 @@ The app also runs as an MCP server exposing `compare_scenes`, `list_labels`, and
 pnpm --filter poltergeist-detector mcp     # serve over stdio
 ```
 
-It's registered in `.kiro/settings/mcp.json` and driven by the `poltergeist-detector` Kiro agent (a wry ghost-hunter persona scoped to just this app's tools). The server launches through `mcp-launch.sh`, which selects the project's Node via nvm. The server reads images only from the repo's `samples/` folder (override with `MCP_IMAGES_DIR`), so MCP image paths are relative to `samples/`, for example `before_apple.jpg`. The CLI is different: it reads from the current directory, as described above.
+It's registered in `.kiro/settings/mcp.json` and driven by the `poltergeist-detector` Kiro agent (a wry ghost-hunter persona scoped to just this app's tools). The server launches through `mcp-launch.cjs` (`node apps/poltergeist-detector/mcp-launch.cjs`), which finds the project's Node 22 and works on macOS, Linux and Windows (tested on macOS only). `mcp-launch.sh` is the POSIX fallback if Kiro has no `node` on its PATH. The server reads images only from the repo's `samples/` folder (override with `MCP_IMAGES_DIR`), so MCP image paths are relative to `samples/`, for example `before_apple.jpg`. The CLI is different: it reads from the current directory, as described above.
 
 ## Tests
 
