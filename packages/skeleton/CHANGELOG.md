@@ -12,11 +12,11 @@ First release.
 - Model adapters: `createCocoSsdAdapter` (boxes, 80 classes) and `createMobileNetFoodAdapter` (whole-image labels filtered to an allowlist). Both take a `modelUrl` option to load the model from a copy you host.
 - `createNodeImageDecoder` for Node: JPEG and PNG only, restricted to a required `allowedRoot` folder, with size, megapixel and base64 limits.
 - MCP server kit: `createAppServer`, `createSkeletonServer`, `defineTool`, `registerTool`, `serveApp`, `serveOverStdio`, with `detect_objects` and `count_objects` built in.
-- `agent-template/`: a Kiro app agent template, an MCP launcher template and a read-only security reviewer agent.
+- `agent-template/`: a Kiro app agent template, MCP launcher templates (a cross-platform Node launcher, `mcp-launch.template.cjs`, and a POSIX shell fallback) and a read-only security reviewer agent.
 - Two entry points: `@skeleton-playground/core` (browser-safe) and `@skeleton-playground/core/node`.
 
 ### Notes
 - TensorFlow.js (`@tensorflow/tfjs`) and the model packages are **optional peer dependencies**. Install the ones you use. An adapter's `load()` throws a clear error if one is missing.
 - Model weights are downloaded the first time a model loads.
 - ESM only. Needs Node 22.12 or newer.
-- The launcher template is a POSIX shell script (macOS, Linux, WSL). There is no Windows launcher yet, and nothing has been tested on Windows.
+- The default launcher template is `mcp-launch.template.cjs` (Node, macOS, Linux and Windows). The shell launcher `mcp-launch.template.sh` is a fallback for machines where Kiro has no `node` on its PATH (macOS, Linux, WSL). Both are tested on macOS only; nothing has been tested on Windows.

@@ -68,6 +68,7 @@ describe('published text works outside this repo', () => {
   const readme = readFileSync(join(pkgDir, 'README.md'), 'utf8');
   const reviewer = readFileSync(join(pkgDir, 'agent-template/security-reviewer.template.json'), 'utf8');
   const launcher = readFileSync(join(pkgDir, 'agent-template/mcp-launch.template.sh'), 'utf8');
+  const cjsLauncher = readFileSync(join(pkgDir, 'agent-template/mcp-launch.template.cjs'), 'utf8');
   const REPO_ONLY = ['workspace:*', 'apps/<', 'apps/my-app', '../../../', 'repo root', 'packages/skeleton', 'pnpm test', 'maintainers', 'mcp-security.test'];
   it('README has no monorepo-only instructions', () => {
     for (const text of REPO_ONLY) expect(readme, text).not.toContain(text);
@@ -80,11 +81,12 @@ describe('published text works outside this repo', () => {
     expect(readme).toMatch(/\b265 MB\b/);
     expect(readme).toContain('pnpm add --save-exact @tensorflow/tfjs @tensorflow-models/coco-ssd');
   });
-  it('README, root README and changelog say the launcher is not for plain Windows', () => {
+  it('README, root README and changelog say the shell launcher is not for plain Windows and point to the Node launcher', () => {
     const root = readFileSync(join(pkgDir, '../../README.md'), 'utf8');
     for (const [name, text] of [['package README', readme], ['root README', root]] as const) expect(text, name).toMatch(/windows/i);
     expect(readme).toMatch(/not on plain Windows/i);
-    expect(readFileSync(join(pkgDir, 'CHANGELOG.md'), 'utf8')).toMatch(/no Windows launcher yet/i);
+    expect(readFileSync(join(pkgDir, 'CHANGELOG.md'), 'utf8')).toMatch(/mcp-launch\.template\.cjs/);
+    expect(readme).toContain('mcp-launch.template.cjs');
     expect(launcher).toMatch(/POSIX shell only/);
   });
   it('the monorepo how-to lives in DEVELOPING.md, which is not shipped', () => {
@@ -95,6 +97,7 @@ describe('published text works outside this repo', () => {
     for (const text of ['packages/skeleton/', 'mcp-security.test', 'apps/*', 'Skeleton Crew monorepo', '.kiro/steering/project-structure']) {
       expect(reviewer, text).not.toContain(text);
       expect(launcher, text).not.toContain(text);
+      expect(cjsLauncher, text).not.toContain(text);
     }
   });
 });

@@ -18,7 +18,7 @@ app's MCP tools. Matches the two working App_Agents
   "description": "One sentence on what the agent does, in character.",
   "prompt": "The persona and rules (see below).",
   "mcpServers": {
-    "<app>": { "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }
+    "<app>": { "command": "node", "args": ["apps/<app>/mcp-launch.cjs"] }
   },
   "tools": ["@<app>/detect_objects", "@<app>/count_objects", "@<app>/<app_tool>"],
   "permissions": {
@@ -45,11 +45,14 @@ app's MCP tools. Matches the two working App_Agents
   the project files") is refused, while the app's tools still work.
 - **Tools are `@<server>/<tool>`.** List only this app's own tools plus the
   built-ins (`detect_objects`, `count_objects`).
-- **The server runs through the app's launcher**, `sh apps/<app>/mcp-launch.sh`,
-  not `node --import tsx ...` directly — Kiro spawns servers with the default
-  Node, which may be too old, so the launcher loads the `.nvmrc` Node first.
-  The launcher and the `sh` command entry are POSIX-only (macOS, Linux, WSL); plain Windows is a known gap.
-  Copy it from `packages/skeleton/agent-template/mcp-launch.template.sh`; a skeleton
+- **The server runs through the app's launcher**, `node apps/<app>/mcp-launch.cjs`,
+  not `node --import tsx ...` directly. Kiro spawns servers with the default
+  Node, which may be too old, so the launcher finds the `.nvmrc` Node first and
+  prints a clear error if there is none. It works on macOS, Linux and Windows
+  (tested on macOS only) but needs some `node` on Kiro's PATH. The documented
+  fallback is `sh apps/<app>/mcp-launch.sh` (POSIX only), which loads nvm itself.
+  Copy both from `packages/skeleton/agent-template/mcp-launch.template.cjs` and
+  `mcp-launch.template.sh`; skeleton
   tests fail if it differs
   or if the agent config breaks the security lint in `mcp-security.test.ts` (own tools
   only, exact tool names, `includeMcpJson` false, no env, no wildcard permissions). It runs from the app's own folder, and the server reads

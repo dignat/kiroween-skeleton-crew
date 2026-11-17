@@ -26,7 +26,7 @@ const appAgents = agents.filter(({ agent }) => agent.mcpServers !== undefined);
 const readOnlyAgents = agents.filter(({ agent }) => agent.mcpServers === undefined && isReadOnly(agent));
 const devAgents = agents.filter(({ agent }) => agent.mcpServers === undefined && !isReadOnly(agent));
 const appNames = readdirSync(join(repoRoot, 'apps'), { withFileTypes: true })
-  .filter((e) => e.isDirectory() && existsSync(join(repoRoot, 'apps', e.name, 'mcp-launch.sh')))
+  .filter((e) => e.isDirectory() && existsSync(join(repoRoot, 'apps', e.name, 'mcp-launch.cjs')))
   .map((e) => e.name);
 const rulesOf = (agent: Agent): Rule[] => agent.permissions?.rules ?? [];
 /** Shell metacharacters that would let one allowed command smuggle in another. */
@@ -49,8 +49,8 @@ describe.each(appAgents)('app agent $file', ({ agent }) => {
     const servers = Object.entries(agent.mcpServers ?? {});
     expect(servers).toHaveLength(1);
     const [name, server] = servers[0]!;
-    expect(server.command).toBe('sh');
-    expect(server.args).toEqual([`apps/${name}/mcp-launch.sh`]);
+    expect(server.command).toBe('node');
+    expect(server.args).toEqual([`apps/${name}/mcp-launch.cjs`]);
     expect(server.env ?? {}).toEqual({});
     expect(existsSync(join(repoRoot, server.args[0]!))).toBe(true);
   });
@@ -116,8 +116,8 @@ describe('security-reviewer', () => {
 describe('.kiro/settings/mcp.json', () => {
   const config = JSON.parse(read('.kiro/settings/mcp.json')) as { mcpServers: Record<string, { command: string; args: string[]; env?: Record<string, string> }> };
   it.each(Object.entries(config.mcpServers))('server %s runs only its own launcher', (name, server) => {
-    expect(server.command).toBe('sh');
-    expect(server.args).toEqual([`apps/${name}/mcp-launch.sh`]);
+    expect(server.command).toBe('node');
+    expect(server.args).toEqual([`apps/${name}/mcp-launch.cjs`]);
     expect(server.env ?? {}).toEqual({});
     expect(existsSync(join(repoRoot, server.args[0]!))).toBe(true);
   });
@@ -125,9 +125,13 @@ describe('.kiro/settings/mcp.json', () => {
 /** Commands that fetch code, decode payloads, open sockets or evaluate strings. None belong in a launcher. */
 const BANNED_IN_LAUNCHER = [/\bcurl\b/, /\bwget\b/, /\beval\b/, /\bbase64\b/, /\bnc\b/, /\bncat\b/, /\bssh\b/, /\bscp\b/, /\brm\b/, /\bsudo\b/, /\bsh\s+-c\b/, /\|\s*(ba|z)?sh\b/, /\/dev\/tcp/];
 describe('launchers', () => {
-  const launchers = ['packages/skeleton/agent-template/mcp-launch.template.sh', ...appNames.map((a) => `apps/${a}/mcp-launch.sh`)];
+  const launchers = [
+    'packages/skeleton/agent-template/mcp-launch.template.sh',
+    'packages/skeleton/agent-template/mcp-launch.template.cjs',
+    ...appNames.flatMap((a) => [`apps/${a}/mcp-launch.sh`, `apps/${a}/mcp-launch.cjs`]),
+  ];
   it.each(launchers)('%s contains no download, eval, remote-shell or delete commands', (file) => {
-    const code = read(file).split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
+    const code = read(file).split('\n').filter((l) => !l.trim().startsWith('#') && !l.trim().startsWith('//')).join('\n');
     for (const pattern of BANNED_IN_LAUNCHER) expect(code).not.toMatch(pattern);
   });
 });
@@ -145,8 +149,9 @@ const scannedText = [
   ...agentFiles,
   'packages/skeleton/agent-template/app-agent.template.json',
   'packages/skeleton/agent-template/mcp-launch.template.sh',
+  'packages/skeleton/agent-template/mcp-launch.template.cjs',
   ...listFiles('.kiro/steering', (n) => n.endsWith('.md')),
-  ...appNames.flatMap((a) => [`apps/${a}/mcp-launch.sh`, ...listFiles(`apps/${a}/src`, (n) => n.endsWith('.ts') && !n.endsWith('.test.ts'))]),
+  ...appNames.flatMap((a) => [`apps/${a}/mcp-launch.sh`, `apps/${a}/mcp-launch.cjs`, ...listFiles(`apps/${a}/src`, (n) => n.endsWith('.ts') && !n.endsWith('.test.ts'))]),
 ];
 describe('prompts, tool descriptions and launchers', () => {
   it.each(scannedText)('%s has no hidden characters or instruction-override phrases', (file) => {

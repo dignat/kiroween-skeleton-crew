@@ -1,14 +1,14 @@
 {
   "mcpServers": {
     "poltergeist-detector": {
-      "command": "sh",
-      "args": ["apps/poltergeist-detector/mcp-launch.sh"],
+      "command": "node",
+      "args": ["apps/poltergeist-detector/mcp-launch.cjs"],
       "env": {},
       "disabled": false
     },
     "witches-pantry": {
-      "command": "sh",
-      "args": ["apps/witches-pantry/mcp-launch.sh"],
+      "command": "node",
+      "args": ["apps/witches-pantry/mcp-launch.cjs"],
       "env": {},
       "disabled": false
     }
