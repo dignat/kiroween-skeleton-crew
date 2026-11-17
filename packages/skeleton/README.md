@@ -70,6 +70,8 @@ function createServer() {
 serveApp('my-app', createServer); // serves over stdio
 ```
 
+Tool paths are relative to the `images/` folder: call the tools with `imagePath: "cat.jpg"`, not `"images/cat.jpg"`. Absolute paths work only if they point inside that folder.
+
 Run it with `node server.mjs`. It waits for an MCP client on stdin and stdout. To connect Kiro, add it to `.kiro/settings/mcp.json`:
 
 ```json
