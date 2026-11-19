@@ -1,5 +1,6 @@
 import { parseArgs } from 'node:util';
 import { CliArgsError } from './errors/index.js';
+import { SCENE_KINDS, type SceneKind } from './scene-context.js';
 
 /**
  * CLI argument parsing (task 16.1), separated from I/O so it can be unit tested
@@ -16,6 +17,8 @@ export interface CompareCommand {
   outPath?: string;
   minConfidence?: number;
   tolerance?: number;
+  /** Drop detections that do not fit this kind of scene (see scene-context.ts). */
+  scene?: SceneKind;
 }
 
 export interface HelpCommand {
@@ -39,6 +42,9 @@ Options:
                             with the findings boxed: green = appeared,
                             red = vanished, amber = moved, blue = unchanged.
   --min-confidence <0..1>   Ignore detections below this confidence (default 0.5).
+  --scene <kitchen|outdoor> Drop detections that do not fit the scene, for example a
+                            boat in a kitchen. Needs a clear signal in the photo
+                            (kitchen: oven, sink, ...; outdoor: boat, traffic light, ...).
   --tolerance <0..1>        Max normalized centre drift still counted as
                             "unchanged" (default 0.05). Above it, an object moved.
   --help                    Show this help.
@@ -69,6 +75,7 @@ export function parseCliArgs(argv: readonly string[]): Command {
         out: { type: 'string' },
         'min-confidence': { type: 'string' },
         tolerance: { type: 'string' },
+        scene: { type: 'string' },
         help: { type: 'boolean', default: false },
       },
     });
@@ -116,6 +123,13 @@ export function parseCliArgs(argv: readonly string[]): Command {
   }
   if (values.tolerance !== undefined) {
     result.tolerance = parseUnitInterval(values.tolerance, '--tolerance');
+  }
+  if (values.scene !== undefined) {
+    const scene = SCENE_KINDS.find((kind) => kind === values.scene);
+    if (scene === undefined) {
+      throw new CliArgsError(`--scene must be one of ${SCENE_KINDS.join(', ')}, got "${values.scene}".`);
+    }
+    result.scene = scene;
   }
   return result;
 }

@@ -21,3 +21,13 @@ export {
 } from './format-report.js';
 export { loadScenes, type ImageSizer } from './load-scenes.js';
 export { CliArgsError, SceneLoadError } from './errors/index.js';
+export {
+  sceneContextRules,
+  buildDetectOptions,
+  SCENE_KINDS,
+  KITCHEN_SIGNALS,
+  OUTDOOR_SIGNALS,
+  NOT_IN_KITCHEN,
+  NOT_OUTDOORS,
+  type SceneKind,
+} from './scene-context.js';

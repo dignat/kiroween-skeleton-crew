@@ -1,12 +1,15 @@
 import { filterByConfidence } from './filter-by-confidence.js';
-import type { ModelAdapter } from './model-adapter.js';
+import { filterByBoxLimits } from './filter-by-box-limits.js';
+import { filterByContext } from './filter-by-context.js';
+import { nonMaxSuppression } from './non-max-suppression.js';
+import type { InferMeta, ModelAdapter } from './model-adapter.js';
 import type { DetectOptions, Detection, Detector, DetectorImageInput } from './types.js';
 
 /**
  * Creates a Detector built around a ModelAdapter.
  * - Loads the model once and reuses it (Requirement 2.5), even when detect() is
  *   called several times before the first load finishes.
- * - Applies the confidence threshold (Requirement 2.3).
+ * - Applies the confidence threshold (Requirement 2.3), then optional box limits, then optional context rules, then optional non-maximum suppression.
  * - Lets UnsupportedImageError from the adapter reach the caller as a rejection,
  *   so callers handle it without the process crashing (Requirement 2.4).
  *
@@ -30,8 +33,20 @@ export function createDetector(adapter: ModelAdapter): Detector {
   return {
     async detect(image: DetectorImageInput, options: DetectOptions = {}): Promise<Detection[]> {
       await ensureLoaded();
-      const raw = await adapter.infer(image);
-      return filterByConfidence(raw, options.minConfidence ?? adapter.defaultMinConfidence);
+      const meta: InferMeta = {};
+      const raw = await adapter.infer(image, meta);
+      const byConfidence = filterByConfidence(
+        raw,
+        options.minConfidence ?? adapter.defaultMinConfidence,
+        options.minConfidenceByLabel,
+      );
+      const sized = options.boxLimitsByLabel
+        ? filterByBoxLimits(byConfidence, options.boxLimitsByLabel, meta.imageSize)
+        : byConfidence;
+      const confident = options.contextRules ? filterByContext(sized, options.contextRules) : sized;
+      return options.iouThreshold === undefined
+        ? confident
+        : nonMaxSuppression(confident, options.iouThreshold, { acrossLabels: options.nmsAcrossLabels ?? false });
     },
   };
 }

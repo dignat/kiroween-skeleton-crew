@@ -101,4 +101,19 @@ describe('createDetector', () => {
     await expect(detector.detect(image)).resolves.toHaveLength(1);
     expect(attempts).toBe(2);
   });
+  it('applies box limits and area fractions using the image size the adapter reports', async () => {
+    const box = (size: number) => ({ x: 0, y: 0, width: size, height: size });
+    const raw: Detection[] = [
+      { label: 'cup', confidence: 0.9, box: box(10) },
+      { label: 'cup', confidence: 0.8, box: box(90) },
+    ];
+    const { adapter } = fakeAdapter(raw, {
+      async infer(_image, meta) {
+        if (meta) meta.imageSize = { width: 100, height: 100 };
+        return raw;
+      },
+    });
+    const result = await createDetector(adapter).detect(image, { boxLimitsByLabel: { cup: { maxAreaFraction: 0.5 } } });
+    expect(result).toEqual([raw[0]]);
+  });
 });

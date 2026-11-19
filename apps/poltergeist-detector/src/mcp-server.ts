@@ -3,13 +3,13 @@
 // built-in detect_objects / count_objects and serves over stdio. The CLI and
 // these tools share the same compareScenes logic (Requirement 5.10).
 import { fileURLToPath } from 'node:url';
-import type { DetectOptions } from '@skeleton-playground/core';
 import { createAppServer, defineTool, jsonResult, serveApp, z } from '@skeleton-playground/core/node';
 import { listCocoLabels } from './coco-labels.js';
 import { compareScenes, DEFAULT_MOVE_TOLERANCE } from './compare-scenes.js';
 import { createCocoDetector, createImageSizer } from './detector.js';
 import { toReport } from './format-report.js';
 import { loadScenes } from './load-scenes.js';
+import { buildDetectOptions, SCENE_KINDS } from './scene-context.js';
 
 const SERVER_NAME = 'poltergeist-detector';
 const SERVER_VERSION = '0.1.0';
@@ -29,6 +29,13 @@ const compareInput = z.object({
     .max(1)
     .optional()
     .describe('Ignore detections below this confidence, from 0 to 1 (default 0.5).'),
+  scene: z
+    .enum(SCENE_KINDS)
+    .optional()
+    .describe(
+      'Drop detections that do not fit this kind of scene, for example a boat in a kitchen. ' +
+        'Needs a clear signal in the photo (kitchen: oven, sink, refrigerator...; outdoor: boat, traffic light...).',
+    ),
   tolerance: z
     .number()
     .min(0)
@@ -57,8 +64,7 @@ export function createServer() {
           'Take both photos from the same spot with objects large and clearly separated.',
         inputSchema: compareInput,
         handler: async (input) => {
-          const options: DetectOptions =
-            input.minConfidence === undefined ? {} : { minConfidence: input.minConfidence };
+          const options = buildDetectOptions({ minConfidence: input.minConfidence, scene: input.scene });
           const { before, after } = await loadScenes(detector, getSize, input.beforePath, input.afterPath, options);
           const comparison = compareScenes(before, after, { moveTolerance: input.tolerance });
           return jsonResult(toReport(comparison));

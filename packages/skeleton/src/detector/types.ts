@@ -1,4 +1,6 @@
 // Shared detection types. Browser-safe: no Node imports here (Requirement 1.2).
+import type { BoxLimits } from './filter-by-box-limits.js';
+import type { ContextRule } from './filter-by-context.js';
 
 /** One detected object or whole-image classification. */
 export interface Detection {
@@ -21,6 +23,30 @@ export interface Detection {
 export interface DetectOptions {
   /** Detections below this confidence are excluded. Default is adapter-specific. */
   minConfidence?: number;
+  /**
+   * Per-label thresholds. A label listed here uses its own threshold instead of
+   * minConfidence (or the adapter default). Other labels are unaffected.
+   */
+  minConfidenceByLabel?: Record<string, number>;
+  /**
+   * Per-label plausible box size (pixels) and shape. Detections whose box falls outside the limits
+   * for their label are dropped. Labels not listed, and detections without a box, are kept.
+   */
+  boxLimitsByLabel?: Record<string, BoxLimits>;
+  /**
+   * Context rules: drop a label based on which other labels were detected in the same image, for
+   * example drop "boat" when an "oven" is present. Evidence comes from detections that passed the
+   * confidence and box-limit filters.
+   */
+  contextRules?: ContextRule[];
+  /**
+   * Non-maximum suppression. When set (0 to 1), a box is dropped if its IoU with a
+   * higher-confidence kept box is at or above this value. Off by default.
+   * Detections without a box are never removed.
+   */
+  iouThreshold?: number;
+  /** With iouThreshold: also suppress overlapping boxes that have different labels. Default false. */
+  nmsAcrossLabels?: boolean;
 }
 
 /** Input accepted by a Detector. File paths only resolve in Node. */

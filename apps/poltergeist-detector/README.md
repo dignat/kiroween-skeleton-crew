@@ -41,6 +41,7 @@ Options:
 | `--json` | Print the result as JSON instead of the report. |
 | `--min-confidence <0..1>` | Ignore detections below this confidence (default 0.5). |
 | `--tolerance <0..1>` | Max normalized centre drift still counted as "unchanged" (default 0.05). |
+| `--scene <kitchen\|outdoor>` | Drop detections that do not fit the scene, for example a boat in a kitchen. Needs a clear signal in the photo (kitchen: oven, sink, ...; outdoor: boat, traffic light, ...). |
 | `--help` | Show usage. |
 
 - Results go to **stdout**, progress to **stderr**.

@@ -65,4 +65,8 @@ describe('parseCliArgs', () => {
   it('rejects an unknown flag', () => {
     expect(() => parseCliArgs(['compare', 'a.jpg', 'b.jpg', '--spooky'])).toThrow(CliArgsError);
   });
+  it('parses --scene and rejects an unknown scene', () => {
+    expect(parseCliArgs(['compare', 'a.jpg', 'b.jpg', '--scene', 'kitchen'])).toMatchObject({ scene: 'kitchen' });
+    expect(() => parseCliArgs(['compare', 'a.jpg', 'b.jpg', '--scene', 'moon'])).toThrow(/--scene must be one of/);
+  });
 });

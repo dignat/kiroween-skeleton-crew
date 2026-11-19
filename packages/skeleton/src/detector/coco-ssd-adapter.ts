@@ -1,7 +1,7 @@
 import type * as cocoSsd from '@tensorflow-models/coco-ssd';
 import type * as TF from '@tensorflow/tfjs';
 import { importOptionalPeer } from './optional-peer.js';
-import type { ModelAdapter } from './model-adapter.js';
+import type { InferMeta, ModelAdapter } from './model-adapter.js';
 import type { ImageDecoder } from './pixel-image.js';
 import type { Detection, DetectorImageInput } from './types.js';
 
@@ -88,9 +88,10 @@ export function createCocoSsdAdapter(options: CocoSsdAdapterOptions): ModelAdapt
       }
     },
 
-    async infer(image: DetectorImageInput): Promise<Detection[]> {
+    async infer(image: DetectorImageInput, meta?: InferMeta): Promise<Detection[]> {
       if (!model || !tf) throw new Error('coco-ssd adapter: infer() called before load()');
       const pixels = await decodeImage(image);
+      if (meta) meta.imageSize = { width: pixels.width, height: pixels.height };
       const tensor = tf.browser.fromPixels(pixels, 3);
       try {
         // minScore 0: the Detector applies the confidence threshold, not the model.

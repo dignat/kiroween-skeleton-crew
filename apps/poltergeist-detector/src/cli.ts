@@ -4,7 +4,6 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import type { DetectOptions } from '@skeleton-playground/core';
 import { createNodeImageDecoder } from '@skeleton-playground/core/node';
 import { LEGEND, renderComparisonPng } from './annotate-scenes.js';
 import { parseCliArgs, USAGE, type CompareCommand } from './cli-args.js';
@@ -13,6 +12,7 @@ import { createCocoDetector, createImageSizer } from './detector.js';
 import { formatHauntingReport, formatJson } from './format-report.js';
 import { CliArgsError, SceneLoadError } from './errors/index.js';
 import { loadScenes } from './load-scenes.js';
+import { buildDetectOptions } from './scene-context.js';
 
 /** Runs the compare command end to end. Returns the text to print to stdout. */
 async function runCompare(cmd: CompareCommand): Promise<string> {
@@ -25,8 +25,7 @@ async function runCompare(cmd: CompareCommand): Promise<string> {
   const detector = createCocoDetector(process.cwd());
   const getSize = createImageSizer(process.cwd());
 
-  const options: DetectOptions =
-    cmd.minConfidence === undefined ? {} : { minConfidence: cmd.minConfidence };
+  const options = buildDetectOptions({ minConfidence: cmd.minConfidence, scene: cmd.scene });
 
   process.stderr.write('Loading model and scanning photos (this can take a few seconds)…\n');
   const { before, after } = await loadScenes(detector, getSize, beforePath, afterPath, options);
