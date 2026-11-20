@@ -15,6 +15,9 @@ First release.
 - `agent-template/`: a Kiro app agent template, MCP launcher templates (a cross-platform Node launcher, `mcp-launch.template.cjs`, and a POSIX shell fallback) and a read-only security reviewer agent.
 - Two entry points: `@skeleton-playground/core` (browser-safe) and `@skeleton-playground/core/node`.
 
+- Detection tuning options on `detect()` and on `detect_objects` / `count_objects`: `minConfidenceByLabel`, `boxLimitsByLabel` (pixel and image-fraction limits), `contextRules`, `iouThreshold` and `nmsAcrossLabels`, with the pure functions `filterByBoxLimits`, `filterByContext`, `nonMaxSuppression` and `iou`.
+- `ModelAdapter.infer(image, meta?)`: adapters can report the decoded image size through `meta.imageSize`. `Detector.detectWithInfo()` returns the detections together with that size. COCO-SSD and MobileNet both report it.
+- Review tools: `createReviewKit` and `createReviewTools` add `get_detections` and `submit_review`, which validate an agent's `confirmed` / `rejected` / `uncertain` verdicts per detection. `getAcceptedReview` lets an app tool require an accepted review.
 ### Notes
 - TensorFlow.js (`@tensorflow/tfjs`) and the model packages are **optional peer dependencies**. Install the ones you use. An adapter's `load()` throws a clear error if one is missing.
 - Model weights are downloaded the first time a model loads.

@@ -11,3 +11,5 @@ export { redirectConsoleToStderr, serveOverStdio } from './stdio.js';
 export type { StdioServerHandle } from './stdio.js';
 export { createAppServer, serveApp, defineTool } from './serve-app.js';
 export type { AppServerOptions, AnyToolDefinition } from './serve-app.js';
+export { createReviewKit, createReviewTools, reviewProblems, VERDICTS } from './review-tools.js';
+export type { AcceptedReview, ReviewKit, Verdict } from './review-tools.js';

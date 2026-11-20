@@ -15,4 +15,4 @@ export type { ContextRule } from './filter-by-context.js';
 export { iou, nonMaxSuppression } from './non-max-suppression.js';
 export type { NonMaxSuppressionOptions } from './non-max-suppression.js';
 export type { InferMeta, ModelAdapter } from './model-adapter.js';
-export type { Detection, DetectOptions, Detector, DetectorImageInput } from './types.js';
+export type { Detection, DetectionInfo, DetectOptions, Detector, DetectorImageInput } from './types.js';

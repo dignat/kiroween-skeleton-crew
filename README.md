@@ -131,8 +131,8 @@ Take both photos from the same spot, with objects large and clearly separated (t
 
 Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MCP server (`.kiro/settings/mcp.json`). After cloning, reload the Kiro window so it picks up the servers, then select an app agent:
 
-- **witches-pantry** — the kitchen-witch agent: `check_image`, `detect_objects`, `count_objects`, `suggest_recipes`.
-- **poltergeist-detector** — the ghost-hunter agent: `detect_objects`, `count_objects`, `compare_scenes`, `list_labels`.
+- **witches-pantry** — the kitchen-witch agent: `check_image`, `detect_objects`, `count_objects`, `suggest_recipes`, `get_detections`, `submit_review`. It reviews its own detections before suggesting recipes, and `suggest_recipes` requires an accepted review for ingredients found in a photo.
+- **poltergeist-detector** — the ghost-hunter agent: `detect_objects`, `count_objects`, `compare_scenes`, `list_labels`, `get_detections`, `submit_review`. It reviews the detections behind each finding and marks them confirmed, rejected or uncertain. `compare_scenes` takes an optional `scene` (`kitchen` or `outdoor`).
 - **tool-builder** / **app-generator** — developer agents that scaffold a new MCP tool, or a whole new app from the skeleton, following the project's steering rules.
 - **security-reviewer** — a read-only reviewer (`fs_read`, `grep`, `glob`, no shell or write access). It traces model-chosen file paths, agent permissions, launchers and prompt-injection surfaces, then reports findings in chat. It treats everything it reads as data, not instructions. Try: `Review apps/witches-pantry for security.` Its template lives in `packages/skeleton/agent-template/security-reviewer.template.json`.
 

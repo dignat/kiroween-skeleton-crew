@@ -3,7 +3,7 @@
 // built-in detect_objects / count_objects and serves over stdio. The CLI and
 // these tools share the same compareScenes logic (Requirement 5.10).
 import { fileURLToPath } from 'node:url';
-import { createAppServer, defineTool, jsonResult, serveApp, z } from '@skeleton-playground/core/node';
+import { createAppServer, createReviewTools, defineTool, jsonResult, serveApp, z } from '@skeleton-playground/core/node';
 import { listCocoLabels } from './coco-labels.js';
 import { compareScenes, DEFAULT_MOVE_TOLERANCE } from './compare-scenes.js';
 import { createCocoDetector, createImageSizer } from './detector.js';
@@ -57,6 +57,7 @@ export function createServer() {
     version: SERVER_VERSION,
     detector,
     tools: [
+      ...createReviewTools(detector),
       defineTool({
         name: 'compare_scenes',
         description:

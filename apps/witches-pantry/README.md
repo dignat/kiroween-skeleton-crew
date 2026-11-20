@@ -40,13 +40,13 @@ The app builds to static files and is deployed to GitHub Pages by `.github/workf
 
 ## MCP server (for Kiro)
 
-The app runs as an MCP server exposing `suggest_recipes`, `check_image`, `calculate_nutrition`, and the built-in `detect_objects` / `count_objects`:
+The app runs as an MCP server exposing `suggest_recipes`, `check_image`, `calculate_nutrition`, the review tools `get_detections` / `submit_review`, and the built-in `detect_objects` / `count_objects`:
 
 ```bash
 pnpm --filter witches-pantry mcp       # (served via mcp-launch.cjs in Kiro; mcp-launch.sh is the POSIX fallback)
 ```
 
-It's registered in `.kiro/settings/mcp.json` and driven by the `witches-pantry` Kiro agent (a kitchen-witch persona). The agent calls `check_image` first and politely declines non-food photos. The `suggest_recipes` tool returns per-serving nutrition, Curse Level, purity, and accepts a `sortBy` and `filters` so the agent can match the web UI. The `calculate_nutrition` tool adds up totals and per-serving nutrition for an ingredient list, reporting any ingredients it has no data for, and — when you pass your own daily targets — each amount as a percentage of them (your numbers, not a recommendation).
+It's registered in `.kiro/settings/mcp.json` and driven by the `witches-pantry` Kiro agent (a kitchen-witch persona). The agent calls `check_image` first and politely declines non-food photos. `suggest_recipes` requires a `reviewId` from an accepted `submit_review` for ingredients found in a photo, or `ingredientsSource: "user"` when the user typed them. It does not block ingredients the review rejected: it adds a `reviewWarning` listing them. The `suggest_recipes` tool returns per-serving nutrition, Curse Level, purity, and accepts a `sortBy` and `filters` so the agent can match the web UI. The `calculate_nutrition` tool adds up totals and per-serving nutrition for an ingredient list, reporting any ingredients it has no data for, and — when you pass your own daily targets — each amount as a percentage of them (your numbers, not a recommendation).
 
 The web UI and the MCP tools share the exact same recipe, nutrition, filter, and relevance logic — one implementation, two surfaces.
 

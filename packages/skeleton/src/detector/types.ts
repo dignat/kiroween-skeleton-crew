@@ -54,7 +54,15 @@ export type DetectorImageInput =
   | { kind: 'filePath'; path: string }
   | { kind: 'base64'; data: string; mimeType: string };
 
+/** What one detection run found, plus facts about the image it ran on. */
+export interface DetectionInfo {
+  detections: Detection[];
+  /** Size in pixels of the decoded image. Boxes are in this coordinate space. Absent if the adapter did not report it. */
+  imageSize?: { width: number; height: number };
+}
 /** Implemented by model adapters (createCocoSsdAdapter, createMobileNetFoodAdapter, ...). */
 export interface Detector {
   detect(image: DetectorImageInput, options?: DetectOptions): Promise<Detection[]>;
+  /** Same as detect(), and also reports the image size. Optional so simple Detector fakes stay valid. */
+  detectWithInfo?(image: DetectorImageInput, options?: DetectOptions): Promise<DetectionInfo>;
 }

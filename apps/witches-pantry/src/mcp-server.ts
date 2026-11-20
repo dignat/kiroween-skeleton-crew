@@ -8,6 +8,7 @@
 import { fileURLToPath } from 'node:url';
 import {
   createAppServer,
+  createReviewKit,
   defineTool,
   jsonResult,
   serveApp,
@@ -15,6 +16,7 @@ import {
 } from '@skeleton-playground/core/node';
 import { assessFoodRelevance } from './food-relevance.js';
 import { normalizeIngredients } from './ingredient-map.js';
+import { checkReviewGate } from './review-gate.js';
 import { createFoodDetector } from './node-detector.js';
 import { calculateTotals, percentOfTargets } from './nutrition-calculator.js';
 import { nutritionTable } from './nutrition.js';
@@ -29,6 +31,15 @@ const suggestInput = z.object({
     .array(z.string().min(1))
     .min(1)
     .describe('Ingredient names you have, for example ["onion","tomato","garlic"]. Synonyms are accepted.'),
+  reviewId: z
+    .string()
+    .min(1)
+    .optional()
+    .describe('Required for ingredients found in a photo: the reviewId of a review that submit_review accepted.'),
+  ingredientsSource: z
+    .literal('user')
+    .optional()
+    .describe('Set to "user" when the user typed the ingredients themselves and no photo was involved. Then reviewId is not needed.'),
   sortBy: z
     .enum(['match', 'purity'])
     .optional()
@@ -96,6 +107,7 @@ export function createServer() {
   // (not the working directory). Override with MCP_IMAGES_DIR.
   const allowedRoot = process.env.MCP_IMAGES_DIR ?? fileURLToPath(new URL('../../../samples', import.meta.url));
   const detector = createFoodDetector(allowedRoot);
+  const reviewKit = createReviewKit(detector);
 
   const suggestRecipesTool = defineTool({
     name: 'suggest_recipes',
@@ -104,6 +116,9 @@ export function createServer() {
       'one ingredient, each with the ingredients you have and the ones you still need, best match first.',
     inputSchema: suggestInput,
     handler: async (input) => {
+      const accepted = input.reviewId === undefined ? undefined : reviewKit.getAcceptedReview(input.reviewId);
+      const gate = checkReviewGate(input, accepted?.items);
+      if (!gate.ok) throw new Error(gate.message);
       // Normalize synonyms the same way the UI does, keeping names the mapping
       // does not list (so a user can name an ingredient the detector never sees).
       const normalized = normalizeIngredients(input.ingredients);
@@ -142,7 +157,18 @@ export function createServer() {
             }
           : undefined,
       }));
-      return jsonResult({ have, count: result.length, recipes: result });
+      return jsonResult({
+        have,
+        count: result.length,
+        recipes: result,
+        ...(gate.rejectedIngredientsIncluded.length > 0
+          ? {
+              reviewWarning:
+                `The review rejected: ${gate.rejectedIngredientsIncluded.join(', ')}. Tell the user these were included ` +
+                'anyway, and only keep them if the user confirms they are really there.',
+            }
+          : {}),
+      });
     },
   });
 
@@ -210,7 +236,7 @@ export function createServer() {
     name: SERVER_NAME,
     version: SERVER_VERSION,
     detector,
-    tools: [suggestRecipesTool, checkImageTool, calculateNutritionTool],
+    tools: [suggestRecipesTool, checkImageTool, calculateNutritionTool, ...reviewKit.tools],
   });
 }
 

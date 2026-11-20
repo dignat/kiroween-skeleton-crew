@@ -1,7 +1,7 @@
 import type * as mobilenet from '@tensorflow-models/mobilenet';
 import type * as TF from '@tensorflow/tfjs';
 import { importOptionalPeer } from './optional-peer.js';
-import type { ModelAdapter } from './model-adapter.js';
+import type { InferMeta, ModelAdapter } from './model-adapter.js';
 import type { ImageDecoder } from './pixel-image.js';
 import type { Detection, DetectorImageInput } from './types.js';
 
@@ -104,9 +104,10 @@ export function createMobileNetFoodAdapter(options: MobileNetFoodAdapterOptions)
       }
     },
 
-    async infer(image: DetectorImageInput): Promise<Detection[]> {
+    async infer(image: DetectorImageInput, meta?: InferMeta): Promise<Detection[]> {
       if (!model || !tf) throw new Error('mobilenet-food adapter: infer() called before load()');
       const pixels = await decodeImage(image);
+      if (meta) meta.imageSize = { width: pixels.width, height: pixels.height };
       const tensor = tf.browser.fromPixels(pixels, 3);
       try {
         const predictions = await model.classify(tensor, topK);

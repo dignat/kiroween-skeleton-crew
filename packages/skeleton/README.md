@@ -80,6 +80,32 @@ Run it with `node server.mjs`. It waits for an MCP client on stdin and stdout. T
 
 Kiro starts servers with whatever `node` is first on its PATH, which may be too old. If you use nvm and see "Connection closed", use the Node launcher template below (`mcp-launch.template.cjs`, run as `node mcp-launch.cjs`) instead of calling your server directly. It works on macOS, Linux and Windows, needs only some `node` on Kiro's PATH, finds the `.nvmrc` version and prints a clear error if there is none. It has been tested on macOS only. If Kiro has no `node` on its PATH at all, use the shell launcher template (`mcp-launch.template.sh`, run with `sh`). It loads nvm itself, but it is a POSIX shell script, so it works on macOS, Linux and WSL and **not on plain Windows** (no `sh`, no `nvm.sh`).
 
+## Tuning detections
+`detector.detect(image, options)` applies these filters in order. Every option is optional and off by default, and the MCP tools `detect_objects` and `count_objects` accept the same fields.
+
+| Option | What it does |
+| --- | --- |
+| `minConfidence` | One confidence threshold for every label. Default is the adapter's `defaultMinConfidence` (0.5 for COCO-SSD, 0.1 for MobileNet). |
+| `minConfidenceByLabel` | `{ apple: 0.2 }`. A listed label uses its own threshold. Other labels use `minConfidence`. |
+| `boxLimitsByLabel` | `{ cup: { minArea, maxArea, minAspectRatio, maxAspectRatio, minAreaFraction, maxAreaFraction } }`. Drops boxes that are implausibly small, large or oddly shaped for their label. Areas are in pixels. The fraction fields are relative to the image and need the adapter to report the image size (COCO-SSD does). Detections without a box are kept. |
+| `contextRules` | `[{ label: 'boat', dropWhenPresent: ['oven', 'sink'] }]`. Drops a label based on which other labels are in the same image. `keepOnlyWhenPresent` and `evidenceMinConfidence` are also available. Every rule is checked against the same list, so rule order does not matter. |
+| `iouThreshold`, `nmsAcrossLabels` | Non-maximum suppression. Drops a box whose IoU with a more confident kept box is at or above `iouThreshold`. Only boxes with the same label compete unless `nmsAcrossLabels` is true. Detections without a box are kept. |
+
+The pure functions behind them (`filterByConfidence`, `filterByBoxLimits`, `filterByContext`, `nonMaxSuppression`, `iou`) are exported too. A custom adapter that returns boxes should set `meta.imageSize` in `infer(image, meta)` so the fraction limits work. Pixel limits and the other options do not need it.
+
+## Letting an agent review detections
+`createReviewKit(detector)` (or `createReviewTools(detector)` for just the tools) gives your server two tools:
+
+- `get_detections` returns the detections as JSON: a `reviewId`, the `imageSize`, and for each detection an `id`, `class`, `score` and `box` (`null` for whole-image classifiers).
+- `submit_review` takes one item per detection id, each with a `verdict` (`confirmed`, `rejected` or `uncertain`), `evidence` and `reason`. It checks the review in code: an unknown id, a duplicate, a missing detection or a malformed item returns an error that lists what to fix, and the agent resubmits with the same `reviewId`.
+
+```js
+const reviews = createReviewKit(detector);
+createAppServer({ name: 'my-app', version: '0.1.0', detector, tools: [...reviews.tools, myTool] });
+// In another tool: reviews.getAcceptedReview(reviewId) returns the verdicts, or undefined.
+```
+Use `getAcceptedReview` to require a review before a tool runs. The kit keeps the last 20 reviews in memory. The prompt that tells the agent to use these tools is yours to write. Nothing forces the agent to call them unless one of your tools checks `getAcceptedReview`.
+
 ## Entry points
 
 | Import | What it is |

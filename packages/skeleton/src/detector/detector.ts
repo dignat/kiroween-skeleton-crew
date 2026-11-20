@@ -3,7 +3,7 @@ import { filterByBoxLimits } from './filter-by-box-limits.js';
 import { filterByContext } from './filter-by-context.js';
 import { nonMaxSuppression } from './non-max-suppression.js';
 import type { InferMeta, ModelAdapter } from './model-adapter.js';
-import type { DetectOptions, Detection, Detector, DetectorImageInput } from './types.js';
+import type { DetectOptions, DetectionInfo, Detector, DetectorImageInput } from './types.js';
 
 /**
  * Creates a Detector built around a ModelAdapter.
@@ -30,23 +30,29 @@ export function createDetector(adapter: ModelAdapter): Detector {
     return loading;
   };
 
-  return {
-    async detect(image: DetectorImageInput, options: DetectOptions = {}): Promise<Detection[]> {
-      await ensureLoaded();
-      const meta: InferMeta = {};
-      const raw = await adapter.infer(image, meta);
-      const byConfidence = filterByConfidence(
-        raw,
-        options.minConfidence ?? adapter.defaultMinConfidence,
-        options.minConfidenceByLabel,
-      );
-      const sized = options.boxLimitsByLabel
-        ? filterByBoxLimits(byConfidence, options.boxLimitsByLabel, meta.imageSize)
-        : byConfidence;
-      const confident = options.contextRules ? filterByContext(sized, options.contextRules) : sized;
-      return options.iouThreshold === undefined
+  const detectWithInfo = async (image: DetectorImageInput, options: DetectOptions = {}): Promise<DetectionInfo> => {
+    await ensureLoaded();
+    const meta: InferMeta = {};
+    const raw = await adapter.infer(image, meta);
+    const byConfidence = filterByConfidence(
+      raw,
+      options.minConfidence ?? adapter.defaultMinConfidence,
+      options.minConfidenceByLabel,
+    );
+    const sized = options.boxLimitsByLabel
+      ? filterByBoxLimits(byConfidence, options.boxLimitsByLabel, meta.imageSize)
+      : byConfidence;
+    const confident = options.contextRules ? filterByContext(sized, options.contextRules) : sized;
+    const detections =
+      options.iouThreshold === undefined
         ? confident
         : nonMaxSuppression(confident, options.iouThreshold, { acrossLabels: options.nmsAcrossLabels ?? false });
+    return meta.imageSize ? { detections, imageSize: meta.imageSize } : { detections };
+  };
+  return {
+    detectWithInfo,
+    async detect(image, options) {
+      return (await detectWithInfo(image, options)).detections;
     },
   };
 }

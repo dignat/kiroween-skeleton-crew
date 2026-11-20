@@ -57,7 +57,7 @@ poltergeist-detector compare <before> <after>
 
 ## MCP server (for Kiro)
 
-The app also runs as an MCP server exposing `compare_scenes`, `list_labels`, and the built-in `detect_objects` / `count_objects`:
+The app also runs as an MCP server exposing `compare_scenes` (with an optional `scene` of `kitchen` or `outdoor`), `list_labels`, the review tools `get_detections` / `submit_review`, and the built-in `detect_objects` / `count_objects`:
 
 ```bash
 pnpm --filter poltergeist-detector mcp     # serve over stdio
