@@ -148,6 +148,7 @@ const INJECTION_PHRASES = [
 const scannedText = [
   ...agentFiles,
   'packages/skeleton/agent-template/app-agent.template.json',
+  'packages/skeleton/agent-template/app-generator.template.json',
   'packages/skeleton/agent-template/mcp-launch.template.sh',
   'packages/skeleton/agent-template/mcp-launch.template.cjs',
   ...listFiles('.kiro/steering', (n) => n.endsWith('.md')),
