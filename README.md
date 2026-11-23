@@ -142,6 +142,32 @@ The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to 
 
 Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.cjs`, with `mcp-launch.sh` as the documented fallback) that selects the project's Node, so it works regardless of the default Node that Kiro spawns with (see Platform support above). The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launchers come from `packages/skeleton/agent-template/mcp-launch.template.sh` and `mcp-launch.template.cjs`, and tests fail if an app's launcher differs from its template or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
 
+### Use the MCP servers from other clients
+
+Kiro is not required. Each app's server is a standard stdio MCP server, so any MCP client (Claude Desktop, Cursor, VS Code and others) can launch it and call the same tools. The detection and app logic run on-device and do not depend on the agent. Only the client's config entry changes. The Kiro agent files (persona prompt and tool allowlist) are Kiro-specific, so in another client the model sees just the tool names and descriptions.
+
+Use an absolute path, because other clients do not start from the repo root. Run `pnpm install` first, then add an entry like this to the client's MCP config (for example `claude_desktop_config.json` for Claude Desktop, or `.cursor/mcp.json` for Cursor):
+
+```json
+{
+  "mcpServers": {
+    "witches-pantry": {
+      "command": "node",
+      "args": ["/absolute/path/to/kiroween-skeleton-crew/apps/witches-pantry/mcp-launch.cjs"]
+    },
+    "poltergeist-detector": {
+      "command": "node",
+      "args": ["/absolute/path/to/kiroween-skeleton-crew/apps/poltergeist-detector/mcp-launch.cjs"]
+    }
+  }
+}
+```
+
+- If the client has no `node` on its PATH, use `"command": "sh"` with `apps/<app>/mcp-launch.sh` instead.
+- Images are read only from `samples/`. Pass image paths relative to it (for example `before_apple.jpg`), or set `MCP_IMAGES_DIR` in the entry's `env` to use another folder.
+- The config file location and key names vary by client, so check its MCP docs. VS Code, for example, uses a `servers` key in `.vscode/mcp.json`.
+- Not tested: these servers have only been run with Kiro and with the test suite's MCP client.
+
 ### Building a new app with `app-generator`
 
 The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-playground/core`, linked via `workspace:*`), not something published to npm. So a developer clones this repo and grows new detection apps within it:
