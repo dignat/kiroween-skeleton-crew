@@ -84,10 +84,55 @@ Kiro starts servers with whatever `node` is first on its PATH, which may be too 
 
 | Import | What it is |
 |---|---|
-| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection` and `Detector` types. |
+| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection`, `Detector` and `ModelAdapter` types. |
 | `@skeleton-playground/core/node` | Node only. `createNodeImageDecoder`, `createAppServer`, `defineTool`, `serveApp`, `createSkeletonServer`, `registerTool`, `serveOverStdio`, `jsonResult`, `textResult`, `errorResult`, and the `z` (Zod) used by the kit. |
 
 The adapters take an **image decoder** as a parameter, because decoding differs between environments. In Node use `createNodeImageDecoder`. In a browser, write a decoder that draws the image on a canvas and returns its pixels.
+
+## Bring your own model
+
+The `Detector` only talks to a small `ModelAdapter` interface, so any model can sit behind it: another TensorFlow.js model, ONNX, or a remote service.
+
+```ts
+interface ModelAdapter {
+  readonly name: string; // short name for logs and errors
+  readonly defaultMinConfidence: number; // used when the caller passes no minConfidence
+  load(): Promise<void>; // load weights; the Detector calls it once and reuses the result
+  infer(image: DetectorImageInput): Promise<Detection[]>; // run the model on one image
+}
+```
+
+`infer` returns `Detection[]`: `{ label, confidence }`, plus an optional `box` (`{ x, y, width, height }`) for models that locate objects. The `Detector` applies the confidence filter, so the adapter returns raw results.
+
+```ts
+import { createDetector, type Detection, type ImageDecoder, type ModelAdapter } from '@skeleton-playground/core';
+
+export function createMyAdapter(options: { decodeImage: ImageDecoder }): ModelAdapter {
+  let model: MyModel | undefined; // your runtime's model type
+  return {
+    name: 'my-model',
+    defaultMinConfidence: 0.5,
+    async load() {
+      model = await loadMyModel(); // for example an ONNX session
+    },
+    async infer(image) {
+      const pixels = await options.decodeImage(image); // decode through the decoder, never with fs
+      const raw = await model!.run(pixels);
+      return raw.map((r): Detection => ({ label: r.className, confidence: r.score, box: r.box }));
+    },
+  };
+}
+
+const detector = createDetector(createMyAdapter({ decodeImage }));
+```
+
+Pass `detector` to `createAppServer` as in the quick start. `detect_objects`, `count_objects` and your own tools then use your model with no other change.
+
+- Add your model's runtime as a dependency of your app (`pnpm add --save-exact ...`). TensorFlow.js is only needed by the two built-in adapters.
+- Keep the adapter in your own app, not in this package.
+- In a web app, the adapter must stay browser-safe: import only from `@skeleton-playground/core`, never `/node` or Node modules.
+- Apps created by the `app-generator` agent start with COCO-SSD or MobileNet. To switch, replace the adapter in the app's `createDetector(...)` call.
+- If your model has the same input and output format as COCO-SSD or MobileNet, you may not need an adapter: pass your own weights with `modelUrl`.
 
 ## Security: what the kit does, and what stays your job
 

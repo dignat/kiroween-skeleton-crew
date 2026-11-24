@@ -51,7 +51,7 @@ samples/                    sample images (original, no copyrighted material)
 
 ### The skeleton (`@skeleton-playground/core`)
 
-- A `Detector` with a swappable `ModelAdapter`, so an app picks a model without touching the interface. Two adapters ship: `createCocoSsdAdapter` (80 COCO classes, with bounding boxes) and `createMobileNetFoodAdapter` (whole-image food classification, filtered to an app-supplied allowlist).
+- A `Detector` with a swappable `ModelAdapter`, so an app picks a model without touching the interface. Two adapters ship: `createCocoSsdAdapter` (80 COCO classes, with bounding boxes) and `createMobileNetFoodAdapter` (whole-image food classification, filtered to an app-supplied allowlist). To use a different model, implement the four-member `ModelAdapter` interface; see "Bring your own model" in [`packages/skeleton/README.md`](packages/skeleton/README.md).
 - A browser-safe entry point (`@skeleton-playground/core`) and a Node-only entry point (`@skeleton-playground/core/node`), enforced by a build test so the browser bundle never pulls in Node modules.
 - An **MCP server kit**: `createSkeletonServer` (pre-wired with `detect_objects` and `count_objects`), `registerTool` (snake_case names, duplicate-name rejection, Zod validation, errors become results not crashes), and a stdio helper that keeps stdout clean for the protocol.
 - The model loads once per detector and is reused.
