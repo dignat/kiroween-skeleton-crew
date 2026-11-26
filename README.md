@@ -51,7 +51,7 @@ samples/                    sample images (original, no copyrighted material)
 
 ### The skeleton (`@skeleton-playground/core`)
 
-- A `Detector` with a swappable `ModelAdapter`, so an app picks a model without touching the interface. Two adapters ship: `createCocoSsdAdapter` (80 COCO classes, with bounding boxes) and `createMobileNetFoodAdapter` (whole-image food classification, filtered to an app-supplied allowlist).
+- A `Detector` with a swappable `ModelAdapter`, so an app picks a model without touching the interface. Two adapters ship: `createCocoSsdAdapter` (80 COCO classes, with bounding boxes) and `createMobileNetFoodAdapter` (whole-image food classification, filtered to an app-supplied allowlist). To use a different model, implement the four-member `ModelAdapter` interface; see "Bring your own model" in [`packages/skeleton/README.md`](packages/skeleton/README.md).
 - A browser-safe entry point (`@skeleton-playground/core`) and a Node-only entry point (`@skeleton-playground/core/node`), enforced by a build test so the browser bundle never pulls in Node modules.
 - An **MCP server kit**: `createSkeletonServer` (pre-wired with `detect_objects` and `count_objects`), `registerTool` (snake_case names, duplicate-name rejection, Zod validation, errors become results not crashes), and a stdio helper that keeps stdout clean for the protocol.
 - The model loads once per detector and is reused.
@@ -87,7 +87,9 @@ Drop in a photo of what you have and brew a recipe.
 
 If you use [nvm](https://github.com/nvm-sh/nvm): `nvm use` picks the right Node. If you don't use nvm, make sure Node 22 is the default `node` on your PATH — Kiro and the MCP launchers spawn `node` from the environment. If that `node` is older than 22, the default launcher looks for Node 22 in the nvm folders, and prints a clear error if it finds none.
 
-**Platform support.** Every MCP entry in `.kiro/settings/mcp.json` and `.kiro/agents/` runs a small Node launcher, `{ "command": "node", "args": ["apps/<app>/mcp-launch.cjs"] }`, so the same entry works on macOS, Linux and Windows. The launcher is plain CommonJS, so it starts even on an old Node. It reads the version from `.nvmrc`, uses an nvm (or nvm-windows) install of that version when the default `node` is too old, and otherwise prints a clear error instead of "Connection closed". It needs some `node` on Kiro's PATH. Tested on macOS (Kiro IDE opened from a terminal and from Spotlight, and Kiro CLI). Not tested on Windows.
+**Why a launcher.** Kiro starts MCP servers without running `nvm use`, so a bare `node --import tsx ...` entry would use whatever `node` is first on the PATH Kiro inherited, which may be too old. That PATH depends on how Kiro was started: from a terminal after `nvm use` it is usually right, from the Dock or Spotlight it may not be. The launcher picks the right Node, then starts the server from the app's own folder. It logs only to stderr, because stdout carries the MCP protocol, and it runs the server through `spawn` with fixed arguments, no shell.
+
+**Platform support.** Every MCP entry in `.kiro/settings/mcp.json` and `.kiro/agents/` runs a small Node launcher, `{ "command": "node", "args": ["apps/<app>/mcp-launch.cjs"] }`, so the same entry works on macOS, Linux and Windows. The launcher is plain CommonJS, so it starts even on an old Node. It reads the version from `.nvmrc`, uses an nvm (or nvm-windows) install of that version (the newest matching one) when the default `node` is too old, and does not search fnm, Volta, asdf or mise, and otherwise prints a clear error instead of "Connection closed". It also prints a clear error if `tsx` is missing (run `pnpm install`). A newer Node than `.nvmrc` is accepted. It needs some `node` on Kiro's PATH. Tested on macOS (Kiro IDE opened from a terminal and from Spotlight, and Kiro CLI). Not tested on Windows.
 
 **Fallback: the `sh` launcher (macOS, Linux, WSL).** If Kiro reports that it cannot find `node` (for example, Node is installed only through nvm and Kiro was opened from the Dock), switch the entry to `{ "command": "sh", "args": ["apps/<app>/mcp-launch.sh"] }` in `.kiro/settings/mcp.json` and in the `mcpServers` block of `.kiro/agents/<app>.json`, which takes priority. That launcher loads nvm itself, so it does not need `node` on PATH, but it needs `sh` and does not run on plain Windows. The lint tests expect the `node` entry, so keep that change local.
 
@@ -139,6 +141,32 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to `dist/` on pack, entry points `.` and `./node`). The package README (`packages/skeleton/README.md`) is the npm-facing guide; `packages/skeleton/DEVELOPING.md` has the monorepo how-to (create a new app, publish, test). It has not been published.
 
 Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.cjs`, with `mcp-launch.sh` as the documented fallback) that selects the project's Node, so it works regardless of the default Node that Kiro spawns with (see Platform support above). The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launchers come from `packages/skeleton/agent-template/mcp-launch.template.sh` and `mcp-launch.template.cjs`, and tests fail if an app's launcher differs from its template or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
+
+### Use the MCP servers from other clients
+
+Kiro is not required. Each app's server is a standard stdio MCP server, so any MCP client (Claude Desktop, Cursor, VS Code and others) can launch it and call the same tools. The detection and app logic run on-device and do not depend on the agent. Only the client's config entry changes. The Kiro agent files (persona prompt and tool allowlist) are Kiro-specific, so in another client the model sees just the tool names and descriptions.
+
+Use an absolute path, because other clients do not start from the repo root. Run `pnpm install` first, then add an entry like this to the client's MCP config (for example `claude_desktop_config.json` for Claude Desktop, or `.cursor/mcp.json` for Cursor):
+
+```json
+{
+  "mcpServers": {
+    "witches-pantry": {
+      "command": "node",
+      "args": ["/absolute/path/to/kiroween-skeleton-crew/apps/witches-pantry/mcp-launch.cjs"]
+    },
+    "poltergeist-detector": {
+      "command": "node",
+      "args": ["/absolute/path/to/kiroween-skeleton-crew/apps/poltergeist-detector/mcp-launch.cjs"]
+    }
+  }
+}
+```
+
+- If the client has no `node` on its PATH, use `"command": "sh"` with `apps/<app>/mcp-launch.sh` instead.
+- Images are read only from `samples/`. Pass image paths relative to it (for example `before_apple.jpg`), or set `MCP_IMAGES_DIR` in the entry's `env` to use another folder.
+- The config file location and key names vary by client, so check its MCP docs. VS Code, for example, uses a `servers` key in `.vscode/mcp.json`.
+- Not tested: these servers have only been run with Kiro and with the test suite's MCP client.
 
 ### Building a new app with `app-generator`
 

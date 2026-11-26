@@ -5,7 +5,7 @@ A small TypeScript kit for AI-integrated object detection apps. It gives you:
 - a **detection core** with a swappable model adapter (COCO-SSD for objects with boxes, MobileNet for whole-image food labels), running on-device with TensorFlow.js;
 - a **safe image loader** for Node that only reads JPEG and PNG files from a folder you choose;
 - an **MCP server kit** (Model Context Protocol, over stdio) that comes with `detect_objects` and `count_objects` and lets you add your own tools, so an agent such as Kiro can call your app;
-- copy-in **templates** for a Kiro agent, an MCP launcher script and a read-only security reviewer agent.
+- copy-in **templates** for a Kiro agent, an app-generator agent that scaffolds a project, an MCP launcher script and a read-only security reviewer agent.
 
 It knows nothing about any one app. It was built for the Kiroween hackathon, with two example apps in the [repository](https://github.com/dignat/kiroween-skeleton-crew).
 
@@ -110,10 +110,55 @@ Use `getAcceptedReview` to require a review before a tool runs. The kit keeps th
 
 | Import | What it is |
 |---|---|
-| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection` and `Detector` types. |
+| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection`, `Detector` and `ModelAdapter` types. |
 | `@skeleton-playground/core/node` | Node only. `createNodeImageDecoder`, `createAppServer`, `defineTool`, `serveApp`, `createSkeletonServer`, `registerTool`, `serveOverStdio`, `jsonResult`, `textResult`, `errorResult`, and the `z` (Zod) used by the kit. |
 
 The adapters take an **image decoder** as a parameter, because decoding differs between environments. In Node use `createNodeImageDecoder`. In a browser, write a decoder that draws the image on a canvas and returns its pixels.
+
+## Bring your own model
+
+The `Detector` only talks to a small `ModelAdapter` interface, so any model can sit behind it: another TensorFlow.js model, ONNX, or a remote service.
+
+```ts
+interface ModelAdapter {
+  readonly name: string; // short name for logs and errors
+  readonly defaultMinConfidence: number; // used when the caller passes no minConfidence
+  load(): Promise<void>; // load weights; the Detector calls it once and reuses the result
+  infer(image: DetectorImageInput): Promise<Detection[]>; // run the model on one image
+}
+```
+
+`infer` returns `Detection[]`: `{ label, confidence }`, plus an optional `box` (`{ x, y, width, height }`) for models that locate objects. The `Detector` applies the confidence filter, so the adapter returns raw results.
+
+```ts
+import { createDetector, type Detection, type ImageDecoder, type ModelAdapter } from '@skeleton-playground/core';
+
+export function createMyAdapter(options: { decodeImage: ImageDecoder }): ModelAdapter {
+  let model: MyModel | undefined; // your runtime's model type
+  return {
+    name: 'my-model',
+    defaultMinConfidence: 0.5,
+    async load() {
+      model = await loadMyModel(); // for example an ONNX session
+    },
+    async infer(image) {
+      const pixels = await options.decodeImage(image); // decode through the decoder, never with fs
+      const raw = await model!.run(pixels);
+      return raw.map((r): Detection => ({ label: r.className, confidence: r.score, box: r.box }));
+    },
+  };
+}
+
+const detector = createDetector(createMyAdapter({ decodeImage }));
+```
+
+Pass `detector` to `createAppServer` as in the quick start. `detect_objects`, `count_objects` and your own tools then use your model with no other change.
+
+- Add your model's runtime as a dependency of your app (`pnpm add --save-exact ...`). TensorFlow.js is only needed by the two built-in adapters.
+- Keep the adapter in your own app, not in this package.
+- In a web app, the adapter must stay browser-safe: import only from `@skeleton-playground/core`, never `/node` or Node modules.
+- Apps created by the `app-generator` agent start with COCO-SSD or MobileNet. To switch, replace the adapter in the app's `createDetector(...)` call.
+- If your model has the same input and output format as COCO-SSD or MobileNet, you may not need an adapter: pass your own weights with `modelUrl`.
 
 ## Security: what the kit does, and what stays your job
 
@@ -141,9 +186,21 @@ The package ships `agent-template/`. Nothing is imported from it; copy what you 
 | File | Use |
 |---|---|
 | `app-agent.template.json` | A Kiro agent for your app. Copy to `.kiro/agents/<name>.json` and fill in every `{{PLACEHOLDER}}`. It can use only your app's own MCP tools. |
+| `app-generator.template.json` | A Kiro dev agent that scaffolds a new MCP server project in your current folder: `package.json`, `tsconfig.json`, `src/mcp-server.ts` with one tool, both launchers and a Kiro agent for the app. Copy to `.kiro/agents/app-generator.json`, then see "Scaffold a project with the app-generator agent" below. |
 | `mcp-launch.template.cjs` | The default, cross-platform Node launcher (CommonJS, so it starts even on an old Node). Copy to `mcp-launch.cjs`, replace `{{APP_DISPLAY_NAME}}` and register it as `{ "command": "node", "args": ["mcp-launch.cjs"] }`. It reads the version from `.nvmrc`, looks for a matching install in the nvm folders when the default `node` is too old, and otherwise prints a clear error to stderr. It needs some `node` on Kiro's PATH. Tested on macOS only. |
 | `mcp-launch.template.sh` | The fallback POSIX launcher (macOS, Linux, WSL; not plain Windows) for when Kiro has no `node` on its PATH. It selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |
 | `security-reviewer.template.json` | A read-only Kiro agent (no shell, no write tools) that reviews an MCP server project for file access, permission and prompt-injection problems and reports findings in chat. Copy to `.kiro/agents/security-reviewer.json`. It treats everything it reads as data, not instructions. |
+
+### Scaffold a project with the app-generator agent
+
+Kiro does not start this agent by itself. You copy it in and select it:
+
+```bash
+mkdir -p .kiro/agents
+cp node_modules/@skeleton-playground/core/agent-template/app-generator.template.json .kiro/agents/app-generator.json
+```
+
+Open the project folder in Kiro and select the `app-generator` agent (in the IDE, pick it in the agent list; in kiro-cli, run `kiro-cli --agent app-generator` or `/agent` in a chat). It asks for three things: the app name, one tool name with a sentence on what it does, and the detector (`coco-ssd` or `mobilenet`). It then writes the project files, installs the TensorFlow.js packages with exact versions, runs the typecheck and tests, and prints the `.kiro/settings/mcp.json` block for you to paste, because it cannot write that file. It never overwrites an existing file, commits, or edits `node_modules`. Afterwards, switch to the `security-reviewer` agent and ask it to review the project.
 
 ## Rules to know
 

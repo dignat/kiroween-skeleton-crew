@@ -12,7 +12,7 @@ First release.
 - Model adapters: `createCocoSsdAdapter` (boxes, 80 classes) and `createMobileNetFoodAdapter` (whole-image labels filtered to an allowlist). Both take a `modelUrl` option to load the model from a copy you host.
 - `createNodeImageDecoder` for Node: JPEG and PNG only, restricted to a required `allowedRoot` folder, with size, megapixel and base64 limits.
 - MCP server kit: `createAppServer`, `createSkeletonServer`, `defineTool`, `registerTool`, `serveApp`, `serveOverStdio`, with `detect_objects` and `count_objects` built in.
-- `agent-template/`: a Kiro app agent template, MCP launcher templates (a cross-platform Node launcher, `mcp-launch.template.cjs`, and a POSIX shell fallback) and a read-only security reviewer agent.
+- `agent-template/`: a Kiro app agent template, MCP launcher templates (a cross-platform Node launcher, `mcp-launch.template.cjs`, and a POSIX shell fallback) and a read-only security reviewer agent, and an `app-generator` agent template that scaffolds an MCP server project.
 - Two entry points: `@skeleton-playground/core` (browser-safe) and `@skeleton-playground/core/node`.
 
 - Detection tuning options on `detect()` and on `detect_objects` / `count_objects`: `minConfidenceByLabel`, `boxLimitsByLabel` (pixel and image-fraction limits), `contextRules`, `iouThreshold` and `nmsAcrossLabels`, with the pure functions `filterByBoxLimits`, `filterByContext`, `nonMaxSuppression` and `iou`.

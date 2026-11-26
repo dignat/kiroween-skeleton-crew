@@ -67,6 +67,7 @@ describe('package name', () => {
 describe('published text works outside this repo', () => {
   const readme = readFileSync(join(pkgDir, 'README.md'), 'utf8');
   const reviewer = readFileSync(join(pkgDir, 'agent-template/security-reviewer.template.json'), 'utf8');
+  const generator = readFileSync(join(pkgDir, 'agent-template/app-generator.template.json'), 'utf8');
   const launcher = readFileSync(join(pkgDir, 'agent-template/mcp-launch.template.sh'), 'utf8');
   const cjsLauncher = readFileSync(join(pkgDir, 'agent-template/mcp-launch.template.cjs'), 'utf8');
   const REPO_ONLY = ['workspace:*', 'apps/<', 'apps/my-app', '../../../', 'repo root', 'packages/skeleton', 'pnpm test', 'maintainers', 'mcp-security.test'];
@@ -96,6 +97,7 @@ describe('published text works outside this repo', () => {
   it('the reviewer template and launcher template do not name repo-only paths', () => {
     for (const text of ['packages/skeleton/', 'mcp-security.test', 'apps/*', 'Skeleton Crew monorepo', '.kiro/steering/project-structure']) {
       expect(reviewer, text).not.toContain(text);
+      expect(generator, text).not.toContain(text);
       expect(launcher, text).not.toContain(text);
       expect(cjsLauncher, text).not.toContain(text);
     }
