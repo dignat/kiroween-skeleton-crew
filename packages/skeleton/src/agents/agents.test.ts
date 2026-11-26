@@ -1,10 +1,10 @@
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { generateAgentFiles, formatAgentSpec, parseAgentSpec, type AgentSpec } from './index.js';
+import { generateAgentFiles, formatAgentSpec, mergeMcpConfig, parseAgentSpec, type AgentSpec } from './index.js';
 import { runCli } from './cli.js';
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -88,6 +88,19 @@ describe('skeleton-agents CLI', () => {
     expect((await run(dir, 'check')).text).toMatch(/out of date: \.mcp\.json/);
   });
 
+  it('merges into an existing .mcp.json and keeps servers you added', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skeleton-agents-'));
+    await run(dir, 'init', 'helper', '--server', 'mine');
+    writeFileSync(join(dir, '.mcp.json'), JSON.stringify({ other: 1, mcpServers: { theirs: { command: 'x', args: [] } } }));
+    expect((await run(dir, 'generate')).code).toBe(0);
+    const merged = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8'));
+    expect(Object.keys(merged.mcpServers).sort()).toEqual(['mine', 'theirs']);
+    expect(merged.other).toBe(1);
+    expect((await run(dir, 'check')).code).toBe(0);
+    writeFileSync(join(dir, '.mcp.json'), 'not json');
+    expect((await run(dir, 'generate')).text).toMatch(/not valid JSON/);
+  });
+
   it('fails clearly without an agents folder or with a mismatched name', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'skeleton-agents-'));
     expect((await run(dir, 'generate')).text).toMatch(/skeleton-agents init/);
@@ -100,7 +113,17 @@ describe('skeleton-agents CLI', () => {
 
 describe('this repo', () => {
   it('committed agent files are what the specs generate', () => {
-    const specs = ['poltergeist-detector', 'witches-pantry'].map((n) => parseAgentSpec(read(`agents/${n}/AGENT.md`)));
-    for (const file of generateAgentFiles(specs)) expect(read(file.path), file.path).toBe(file.content);
+    // Every spec under agents/, so adding an app does not break this test.
+    const specs = readdirSync(join(repoRoot, 'agents'), { withFileTypes: true })
+      .filter((d) => d.isDirectory() && existsSync(join(repoRoot, 'agents', d.name, 'AGENT.md')))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((d) => parseAgentSpec(read(`agents/${d.name}/AGENT.md`)));
+    expect(specs.length).toBeGreaterThan(0);
+    for (const file of generateAgentFiles(specs)) {
+      const committed = read(file.path);
+      // MCP configs are merged (the CLI keeps servers in place), so compare what `generate` would write.
+      const expected = file.path.endsWith('mcp.json') ? mergeMcpConfig(committed, file.content) : file.content;
+      expect(committed, file.path).toBe(expected);
+    }
   });
 });

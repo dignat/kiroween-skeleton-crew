@@ -138,7 +138,7 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 - **tool-builder** / **app-generator** — developer agents that scaffold a new MCP tool, or a whole new app from the skeleton, following the project's steering rules.
 - **security-reviewer** — a read-only reviewer (`fs_read`, `grep`, `glob`, no shell or write access). It traces model-chosen file paths, agent permissions, launchers and prompt-injection surfaces, then reports findings in chat. It treats everything it reads as data, not instructions. Try: `Review apps/witches-pantry for security.` Its template lives in `packages/skeleton/agent-template/security-reviewer.template.json`.
 
-The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to `dist/` on pack, entry points `.` and `./node`). The package README (`packages/skeleton/README.md`) is the npm-facing guide; `packages/skeleton/DEVELOPING.md` has the monorepo how-to (create a new app, publish, test). It has not been published.
+The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to `dist/` on pack, entry points `.`, `./node` and `./agents`). The package README (`packages/skeleton/README.md`) is the npm-facing guide; `packages/skeleton/DEVELOPING.md` has the monorepo how-to (create a new app, publish, test). It has not been published.
 
 Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.cjs`, with `mcp-launch.sh` as the documented fallback) that selects the project's Node, so it works regardless of the default Node that Kiro spawns with (see Platform support above). The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launchers come from `packages/skeleton/agent-template/mcp-launch.template.sh` and `mcp-launch.template.cjs`, and tests fail if an app's launcher differs from its template or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
 
@@ -168,14 +168,30 @@ Use an absolute path, because other clients do not start from the repo root. Run
 - The config file location and key names vary by client, so check its MCP docs. VS Code, for example, uses a `servers` key in `.vscode/mcp.json`.
 - Not tested: these servers have only been run with Kiro and with the test suite's MCP client.
 
+### Agents for other clients
+The two app agents are written once as `agents/<name>/AGENT.md`: a plain system prompt plus a small header (name, description, MCP server, launcher, tool names). `pnpm agents:generate` turns each one into the files a client reads:
+
+| Client | Generated files |
+|---|---|
+| Kiro | `.kiro/agents/<name>.json` |
+| Claude Code | `.claude/agents/<name>.md` and `.mcp.json` |
+| Cursor | `.cursor/rules/<name>.mdc` and `.cursor/mcp.json` |
+| Any chat UI or API | `agents/generated/<name>.system-prompt.md`, used as the system message |
+
+Edit the `AGENT.md`, never the generated files. `pnpm agents:check` fails if a generated file is out of date. The same tool ships in the skeleton package as the `skeleton-agents` command and the `@skeleton-playground/core/agents` entry point (see `agents/README.md` and the package README).
+
+- **Kiro is different.** Kiro does not read `.mcp.json`. The generated Kiro agent starts its server inline, but the server must also be listed in `.kiro/settings/mcp.json`, and the Kiro window needs a reload. Claude Code reads `.mcp.json` itself and asks you to approve the server the first time.
+- **Tested:** the Kiro agents are the ones this repo runs. The Claude Code and Cursor files follow those clients' documented formats and are checked by tests, but they have not been run in those apps.
+- **Cursor** gets a rule (a persona prompt), not a separate agent, so it cannot limit which tools the rule uses.
+
 ### Building a new app with `app-generator`
 
 The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-playground/core`, linked via `workspace:*`), not something published to npm. So a developer clones this repo and grows new detection apps within it:
 
 1. Clone the repo, run `nvm use` (Node 22) and `pnpm install` at the root.
 2. Open it in Kiro and switch to the **app-generator** agent.
-3. Tell it the new app's **name**, its one **MCP tool** (snake_case) and its **interface**: `mcp-only`, `cli` (like the Poltergeist Detector) or `web` (like the Witch's Pantry). For example, "create a `cli` app called `shelf-scanner` with one tool `list_shelf`". If you leave the interface out, it asks. You don't give it a path; it writes `apps/<name>/` and `.kiro/agents/<name>.json` by convention.
-4. It scaffolds the whole app (package.json, tsconfig, logic + test, `mcp-server.ts` using the skeleton's `createAppServer`/`defineTool`/`serveApp`, the nvm launcher, and the App_Agent, plus the CLI files or the Vite web UI if you chose one), runs install + typecheck + tests (and a build for `web`), and prints the `.kiro/settings/mcp.json` block for you to paste (it's intentionally not allowed to edit that file itself).
+3. Tell it the new app's **name**, its one **MCP tool** (snake_case) and its **interface**: `mcp-only`, `cli` (like the Poltergeist Detector) or `web` (like the Witch's Pantry). For example, "create a `cli` app called `shelf-scanner` with one tool `list_shelf`". If you leave the interface out, it asks. You don't give it a path; it writes `apps/<name>/` and `agents/<name>/AGENT.md` by convention, then runs `pnpm agents:generate` to produce `.kiro/agents/<name>.json` and the files for the other clients.
+4. It scaffolds the whole app (package.json, tsconfig, logic + test, `mcp-server.ts` using the skeleton's `createAppServer`/`defineTool`/`serveApp`, the nvm launcher, and the App_Agent spec with its generated agent files, plus the CLI files or the Vite web UI if you chose one), runs install + typecheck + tests (and a build for `web`), and prints the `.kiro/settings/mcp.json` block for you to paste (it's intentionally not allowed to edit that file itself).
 
 The generated app depends on the skeleton through `workspace:*` and never modifies `packages/` — new apps live entirely under `apps/`.
 

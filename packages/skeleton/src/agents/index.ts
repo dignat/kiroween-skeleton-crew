@@ -4,5 +4,5 @@ export { formatAgentSpec, parseAgentSpec } from './spec.js';
 export type { AgentSpec } from './spec.js';
 export { builtInAdapters, claudeAdapter, cursorAdapter, kiroAdapter, promptAdapter } from './adapters.js';
 export type { AgentAdapter, AgentFile } from './adapters.js';
-export { generateAgentFiles } from './generate.js';
+export { generateAgentFiles, mergeMcpConfig } from './generate.js';
 export type { GenerateOptions } from './generate.js';

@@ -19,4 +19,6 @@ pnpm agents:check      # fail if a generated file is out of date
 
 Tool names are written as the MCP server defines them (`detect_objects`). Each adapter adds its own prefix and permission format, for example `mcp__witches-pantry__detect_objects` for Claude Code.
 
+Kiro does not read `.mcp.json`. The generated Kiro agent starts the server inline, but the server must also be listed in `.kiro/settings/mcp.json` (the generator does not write that file), and the Kiro window needs a reload. Claude Code reads `.mcp.json` itself and asks you to approve the server the first time.
+
 Launcher paths in `.mcp.json` are relative to the repo root, so start the client from there.

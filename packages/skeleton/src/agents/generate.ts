@@ -28,3 +28,23 @@ export function generateAgentFiles(specs: AgentSpec[], options: GenerateOptions 
   }
   return [...files].map(([path, content]) => ({ path, content }));
 }
+
+/**
+ * Merges generated MCP servers into an existing MCP config (.mcp.json, .cursor/mcp.json), so
+ * servers you added yourself are kept. Returns `generated` when there is no existing file.
+ */
+export function mergeMcpConfig(existing: string | undefined, generated: string): string {
+  if (existing === undefined) return generated;
+  let current: unknown;
+  try {
+    current = JSON.parse(existing);
+  } catch {
+    throw new Error('An existing MCP config is not valid JSON. Fix or move it, then run again.');
+  }
+  if (typeof current !== 'object' || current === null || Array.isArray(current)) {
+    throw new Error('An existing MCP config is not a JSON object. Fix or move it, then run again.');
+  }
+  const next = JSON.parse(generated) as { mcpServers: Record<string, unknown> };
+  const currentServers = (current as { mcpServers?: Record<string, unknown> }).mcpServers ?? {};
+  return `${JSON.stringify({ ...current, mcpServers: { ...currentServers, ...next.mcpServers } }, null, 2)}\n`;
+}

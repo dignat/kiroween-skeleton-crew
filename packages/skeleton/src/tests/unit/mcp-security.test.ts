@@ -72,10 +72,10 @@ describe.each(devAgents)('developer agent $file', ({ agent }) => {
   it('does not inherit the workspace mcp.json', () => {
     expect(agent.includeMcpJson).toBe(false);
   });
-  it('writes only under apps/ (and its own agent folder), never packages/, settings or hooks', () => {
+  it('writes only under apps/ and agents/ (the agent specs), never packages/, settings or hooks', () => {
     const allowed = rulesOf(agent).filter((r) => r.capability === 'fs_write' && r.effect === 'allow');
     for (const rule of allowed) {
-      for (const m of rule.match) expect(['apps/**', '.kiro/agents/**']).toContain(m);
+      for (const m of rule.match) expect(['apps/**', 'agents/**']).toContain(m);
     }
   });
   it('allows only plain pnpm commands, with no shell metacharacters', () => {
@@ -147,7 +147,7 @@ const INJECTION_PHRASES = [
 ];
 const scannedText = [
   ...agentFiles,
-  'packages/skeleton/agent-template/app-agent.template.json',
+  'packages/skeleton/agent-template/app-agent.template.md',
   'packages/skeleton/agent-template/app-generator.template.json',
   'packages/skeleton/agent-template/mcp-launch.template.sh',
   'packages/skeleton/agent-template/mcp-launch.template.cjs',

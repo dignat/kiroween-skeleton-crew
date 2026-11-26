@@ -39,7 +39,7 @@ Apps in this repo depend on the package as `"@skeleton-playground/core": "worksp
    { "mcpServers": { "my-app": { "command": "node", "args": ["apps/my-app/mcp-launch.cjs"] } } }
    ```
 
-5. **Create the App_Agent**: copy `agent-template/app-agent.template.json` to `.kiro/agents/<your-app>.json` and fill in every `{{PLACEHOLDER}}` (app name, description, persona, your tool name, the MCP entry path, a welcome message). The template gives the agent only this app's tools.
+5. **Create the App_Agent**: copy `agent-template/app-agent.template.md` to `agents/<your-app>/AGENT.md` and fill in every `{{PLACEHOLDER}}` (app name, description, persona, your tool name, the launcher path, a welcome message). Then run `pnpm agents:generate`, which writes `.kiro/agents/<your-app>.json` and the Claude Code and Cursor files. The template gives the agent only this app's tools. Edit the spec, never the generated files.
 6. **Test it**: run `pnpm test` and `pnpm typecheck`, check the server with `pnpm dlx @modelcontextprotocol/inspector node --import tsx apps/my-app/src/mcp-server.ts`, then ask the agent in Kiro to use a tool.
 
 ## Publishing (maintainers)

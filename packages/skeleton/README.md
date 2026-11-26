@@ -120,6 +120,8 @@ npx skeleton-agents check           # exit 1 if a generated file is out of date 
 | Claude Code | `.claude/agents/<name>.md` and `.mcp.json` |
 | Cursor | `.cursor/rules/<name>.mdc` and `.cursor/mcp.json` |
 | Any chat UI or API | `agents/generated/<name>.system-prompt.md`, used as the system message |
+**Kiro is different from the other clients.** Kiro does not read `.mcp.json`. The generated `.kiro/agents/<name>.json` starts the server inline for that agent, but you still paste the server into `.kiro/settings/mcp.json` to register it, and reload the Kiro window. Claude Code reads `.mcp.json` by itself (it asks you to approve the server the first time), and Cursor reads `.cursor/mcp.json`. The generator never writes `.kiro/settings/mcp.json`.
+
 Write tool names as your MCP server defines them (`detect_objects`). Each adapter adds the client's own prefix. Edit the spec, not the generated files. The same code is a library at `@skeleton-playground/core/agents` (`parseAgentSpec`, `generateAgentFiles`, and the `AgentAdapter` interface for adding another client). Only the Kiro output has been tried in its client; the Claude Code and Cursor formats are generated from their documented shapes and checked by tests, not run in those apps.
 ## Entry points
 
@@ -201,7 +203,7 @@ The package ships `agent-template/`. Nothing is imported from it; copy what you 
 
 | File | Use |
 |---|---|
-| `app-agent.template.json` | A Kiro agent for your app. Copy to `.kiro/agents/<name>.json` and fill in every `{{PLACEHOLDER}}`. It can use only your app's own MCP tools. |
+| `app-agent.template.md` | An agent spec for your app (`agents/<name>/AGENT.md`). Copy it, fill in every `{{PLACEHOLDER}}`, then run `skeleton-agents generate` to get the Kiro, Claude Code and Cursor files. It can use only your app's own MCP tools. |
 | `app-generator.template.json` | A Kiro dev agent that scaffolds a new MCP server project in your current folder: `package.json`, `tsconfig.json`, `src/mcp-server.ts` with one tool, both launchers and a Kiro agent for the app. Copy to `.kiro/agents/app-generator.json`, then see "Scaffold a project with the app-generator agent" below. |
 | `mcp-launch.template.cjs` | The default, cross-platform Node launcher (CommonJS, so it starts even on an old Node). Copy to `mcp-launch.cjs`, replace `{{APP_DISPLAY_NAME}}` and register it as `{ "command": "node", "args": ["mcp-launch.cjs"] }`. It reads the version from `.nvmrc`, looks for a matching install in the nvm folders when the default `node` is too old, and otherwise prints a clear error to stderr. It needs some `node` on Kiro's PATH. Tested on macOS only. |
 | `mcp-launch.template.sh` | The fallback POSIX launcher (macOS, Linux, WSL; not plain Windows) for when Kiro has no `node` on its PATH. It selects the Node version from your `.nvmrc` through nvm, then starts your server. Copy to `mcp-launch.sh` and replace `{{APP_DISPLAY_NAME}}`. Its last line runs `node --import tsx src/mcp-server.ts`; change it to your server file, for example `node server.mjs`. |

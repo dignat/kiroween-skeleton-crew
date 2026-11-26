@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { builtInAdapters } from './adapters.js';
-import { generateAgentFiles } from './generate.js';
+import { generateAgentFiles, mergeMcpConfig } from './generate.js';
 import { type AgentSpec, formatAgentSpec, parseAgentSpec } from './spec.js';
 
 export interface CliIo {
@@ -86,13 +86,16 @@ export async function runCli(argv: string[], io: CliIo): Promise<number> {
       let stale = 0;
       for (const file of files) {
         const target = join(io.cwd, file.path);
-        if (existsSync(target) && readFileSync(target, 'utf8') === file.content) continue;
+        const existing = existsSync(target) ? readFileSync(target, 'utf8') : undefined;
+        // MCP configs are merged into, never replaced, so servers you added by hand survive.
+        const content = file.path.endsWith('mcp.json') ? mergeMcpConfig(existing, file.content) : file.content;
+        if (existing === content) continue;
         if (command === 'check') {
           io.err(`out of date: ${file.path}`);
           stale++;
         } else {
           mkdirSync(dirname(target), { recursive: true });
-          writeFileSync(target, file.content);
+          writeFileSync(target, content);
           io.err(`wrote ${file.path}`);
         }
       }
