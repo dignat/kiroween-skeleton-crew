@@ -1,6 +1,6 @@
 {
   "name": "@skeleton-playground/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reusable skeleton: detection core and MCP server kit shared by every Skeleton Crew app.",
   "keywords": [
     "object-detection",
@@ -8,7 +8,10 @@
     "mcp",
     "model-context-protocol",
     "kiro",
-    "skeleton"
+    "skeleton",
+    "agents",
+    "claude-code",
+    "cursor"
   ],
   "type": "module",
   "license": "MIT",
@@ -26,7 +29,11 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./node": "./src/node/index.ts"
+    "./node": "./src/node/index.ts",
+    "./agents": "./src/agents/index.ts"
+  },
+  "bin": {
+    "skeleton-agents": "./dist/agents/bin.js"
   },
   "files": [
     "dist",
@@ -45,6 +52,10 @@
       "./node": {
         "types": "./dist/node/index.d.ts",
         "default": "./dist/node/index.js"
+      },
+      "./agents": {
+        "types": "./dist/agents/index.d.ts",
+        "default": "./dist/agents/index.js"
       }
     }
   },

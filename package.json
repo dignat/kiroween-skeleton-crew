@@ -16,6 +16,8 @@
     "test:coverage": "vitest run --coverage",
     "test:models": "RUN_MODEL_TESTS=1 vitest run models.integration",
     "build": "pnpm -r --if-present build",
+    "agents:generate": "node --import tsx packages/skeleton/src/agents/bin.ts generate",
+    "agents:check": "node --import tsx packages/skeleton/src/agents/bin.ts check",
     "demo:poltergeist": "node --import tsx apps/poltergeist-detector/src/cli.ts compare samples/before_tomatoes.jpg samples/after_tomatoes.jpg --out demo-output/haunting-report.png"
   },
   "pnpm": {

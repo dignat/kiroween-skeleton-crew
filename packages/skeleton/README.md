@@ -106,11 +106,27 @@ createAppServer({ name: 'my-app', version: '0.1.0', detector, tools: [...reviews
 ```
 Use `getAcceptedReview` to require a review before a tool runs. The kit keeps the last 20 reviews in memory. The prompt that tells the agent to use these tools is yours to write. Nothing forces the agent to call them unless one of your tools checks `getAcceptedReview`.
 
+## Portable agents: one spec, any client
+Write each agent once as `agents/<name>/AGENT.md`: a small front matter block (name, description, welcome message, MCP server, launcher command, bare tool names) and a Markdown body that is a plain system prompt. Then generate the files each client reads:
+```bash
+npx skeleton-agents init my-agent --server my-server --command "node my-server/mcp-launch.cjs"
+# edit agents/my-agent/AGENT.md
+npx skeleton-agents generate        # all clients, or --only kiro,claude,cursor,prompt
+npx skeleton-agents check           # exit 1 if a generated file is out of date (for CI)
+```
+| Client | Generated files |
+|---|---|
+| Kiro | `.kiro/agents/<name>.json` |
+| Claude Code | `.claude/agents/<name>.md` and `.mcp.json` |
+| Cursor | `.cursor/rules/<name>.mdc` and `.cursor/mcp.json` |
+| Any chat UI or API | `agents/generated/<name>.system-prompt.md`, used as the system message |
+Write tool names as your MCP server defines them (`detect_objects`). Each adapter adds the client's own prefix. Edit the spec, not the generated files. The same code is a library at `@skeleton-playground/core/agents` (`parseAgentSpec`, `generateAgentFiles`, and the `AgentAdapter` interface for adding another client). Only the Kiro output has been tried in its client; the Claude Code and Cursor formats are generated from their documented shapes and checked by tests, not run in those apps.
 ## Entry points
 
 | Import | What it is |
 |---|---|
-| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection`, `Detector` and `ModelAdapter` types. |
+| `@skeleton-playground/core` | Browser-safe. Imports no Node modules, so a web app can bundle it. Detection core, `createDetector`, `createCocoSsdAdapter`, `createMobileNetFoodAdapter`, `countByLabel`, `filterByConfidence`, the `Detection` and `Detector` types. |
+| `@skeleton-playground/core/agents` | Agent specs and client adapters. Pure functions, no Node modules. The `skeleton-agents` command wraps it. |
 | `@skeleton-playground/core/node` | Node only. `createNodeImageDecoder`, `createAppServer`, `defineTool`, `serveApp`, `createSkeletonServer`, `registerTool`, `serveOverStdio`, `jsonResult`, `textResult`, `errorResult`, and the `z` (Zod) used by the kit. |
 
 The adapters take an **image decoder** as a parameter, because decoding differs between environments. In Node use `createNodeImageDecoder`. In a browser, write a decoder that draws the image on a canvas and returns its pixels.

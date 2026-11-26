@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "poltergeist-detector": {
+      "command": "node",
+      "args": [
+        "apps/poltergeist-detector/mcp-launch.cjs"
+      ]
+    },
+    "witches-pantry": {
+      "command": "node",
+      "args": [
+        "apps/witches-pantry/mcp-launch.cjs"
+      ]
+    }
+  }
+}

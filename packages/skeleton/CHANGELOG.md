@@ -3,7 +3,13 @@
 All notable changes to `@skeleton-playground/core`. The format follows [Keep a Changelog](https://keepachangelog.com/),
 and the project uses [Semantic Versioning](https://semver.org/). Versions before 1.0 may change between minor releases.
 
-## 0.1.0 (unreleased)
+## 0.2.0 (unreleased)
+### Added
+- `@skeleton-playground/core/agents`: write one `AGENT.md` per agent (a plain system prompt plus a small front matter block) and generate agent files for other clients. Exports `parseAgentSpec`, `formatAgentSpec`, `generateAgentFiles` and the `AgentAdapter` interface. Built-in adapters: Kiro (`.kiro/agents/*.json`), Claude Code (`.claude/agents/*.md` and `.mcp.json`), Cursor (`.cursor/rules/*.mdc` and `.cursor/mcp.json`) and a bare system prompt.
+- `skeleton-agents` command (`init`, `generate`, `check`) for the same job from the shell. `check` exits 1 when a generated file is out of date.
+
+## 0.1.0
+
 
 First release.
 
