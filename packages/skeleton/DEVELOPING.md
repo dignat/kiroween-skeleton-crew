@@ -49,7 +49,7 @@ pnpm --filter @skeleton-playground/core build           # compile to dist/ (also
 pnpm --filter @skeleton-playground/core pack            # inspect the tarball
 pnpm --filter @skeleton-playground/core publish --dry-run
 ```
-Publishing needs an npm login for an account in the `skeleton-playground` npm organization (the `@skeleton-playground` scope). Check the tarball contents before the first real publish: no tests, fixtures or spike files should be in it.
+Publishing needs an npm login for an account in the `skeleton-playground` npm organization (the `@skeleton-playground` scope). Check the tarball contents before each publish (`pnpm pack` or `publish --dry-run`): no tests, fixtures or spike files should be in it.
 
 Release checklist: update `version` in `package.json`, add a matching `## <version>` section to `CHANGELOG.md` (a test fails without it), run `pnpm test`, then publish. For a build with npm provenance, push a tag named `core-v<version>` (or run the workflow by hand): `.github/workflows/publish-core.yml` tests, then publishes with `--provenance`. It needs an `NPM_TOKEN` repository secret (an npm automation token). Publishing by hand from your machine also works but has no provenance.
 

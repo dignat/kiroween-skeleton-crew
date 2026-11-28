@@ -138,7 +138,7 @@ Kiro is the AI layer — custom agents in `.kiro/agents/` call each app's own MC
 - **tool-builder** / **app-generator** — developer agents that scaffold a new MCP tool, or a whole new app from the skeleton, following the project's steering rules.
 - **security-reviewer** — a read-only reviewer (`fs_read`, `grep`, `glob`, no shell or write access). It traces model-chosen file paths, agent permissions, launchers and prompt-injection surfaces, then reports findings in chat. It treats everything it reads as data, not instructions. Try: `Review apps/witches-pantry for security.` Its template lives in `packages/skeleton/agent-template/security-reviewer.template.json`.
 
-The skeleton package is ready for npm (`@skeleton-playground/core`, compiled to `dist/` on pack, entry points `.` and `./node`). The package README (`packages/skeleton/README.md`) is the npm-facing guide; `packages/skeleton/DEVELOPING.md` has the monorepo how-to (create a new app, publish, test). It has not been published.
+The skeleton package is published on npm as [`@skeleton-playground/core`](https://www.npmjs.com/package/@skeleton-playground/core) (version 0.1.0, compiled to `dist/`, entry points `.` and `./node`). Install it with `pnpm add --save-exact @skeleton-playground/core`. The package README (`packages/skeleton/README.md`) is the npm-facing guide; `packages/skeleton/DEVELOPING.md` has the monorepo how-to (create a new app, publish, test).
 
 Each MCP server runs through a small per-app launcher (`apps/<app>/mcp-launch.cjs`, with `mcp-launch.sh` as the documented fallback) that selects the project's Node, so it works regardless of the default Node that Kiro spawns with (see Platform support above). The launcher runs from the app's own folder, and the MCP servers read images only from `samples/` (set `MCP_IMAGES_DIR` to use another folder). The launchers come from `packages/skeleton/agent-template/mcp-launch.template.sh` and `mcp-launch.template.cjs`, and tests fail if an app's launcher differs from its template or its server uses `process.cwd()`. A security lint test (`packages/skeleton/src/tests/unit/mcp-security.test.ts`) also checks every agent, `mcp.json` entry, launcher and app source file for known-bad patterns such as wildcard tool permissions, `fs` or network imports, download or `eval` commands, and hidden or prompt-override text. It is a pattern check, not a proof of safety.
 
@@ -170,7 +170,7 @@ Use an absolute path, because other clients do not start from the repo root. Run
 
 ### Building a new app with `app-generator`
 
-The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-playground/core`, linked via `workspace:*`), not something published to npm. So a developer clones this repo and grows new detection apps within it:
+The skeleton is used **from inside this repo** — it's a workspace package (`@skeleton-playground/core`, linked via `workspace:*` inside this repo) that is also published on npm for use in other projects. To grow new detection apps with the `app-generator` agent, a developer clones this repo and works within it:
 
 1. Clone the repo, run `nvm use` (Node 22) and `pnpm install` at the root.
 2. Open it in Kiro and switch to the **app-generator** agent.
